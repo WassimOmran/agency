@@ -634,7 +634,7 @@ function buildDeskSpots() {
     const count = agentCounts[z.id] || 0;
     if (!count) return;
 
-    const DESK_W = 150, DESK_H = 84, LABEL_H = 52, PAD = 16, SPACING = 12;
+    const DESK_W = 150, DESK_H = 84, LABEL_H = 86, PAD = 14, SPACING = 10;
     const innerW = z.w - PAD * 2;
     const innerH = z.h - LABEL_H - PAD * 2;
 
@@ -721,10 +721,10 @@ class NPC {
 
   _emitChat(context) {
     const lines = BREAK_LINES[context] || [];
-    if (!lines.length) return;
+    if (!lines.length || Math.random() > 0.35) return;  // only 35% chance to actually say anything
     this.chatText = lines[(Math.random() * lines.length) | 0];
     this.chatTimer = 3000 + Math.random() * 1000;
-    this.chatCD = 6000 + Math.random() * 4000;
+    this.chatCD = 12000 + Math.random() * 10000;
   }
 
   _startBreak(all) {
@@ -752,7 +752,7 @@ class NPC {
         this.ty = this.zone.y + 50 + Math.random() * (this.zone.h - 100);
       }
       this.stateCD = 140 + Math.random() * 180;
-      if (Math.random() < 0.35) this._emitChat('wander');
+      if (Math.random() < 0.15) this._emitChat('wander');
     } else if (r < 0.70) {
       // Chat with same-division colleague
       const same = all.filter(n => n !== this && n.a.div === this.a.div);
@@ -787,7 +787,7 @@ class NPC {
           self.state = 'talking';
           self.stateCD = 180 + Math.random() * 180;
           if (target.state !== 'typing') target.state = 'talking';
-          self._emitChat('collab');
+          if (Math.random() < 0.3) self._emitChat('collab');
         }, 700);
       } else {
         this.actMode = 'wander'; this.state = 'idle'; this.stateCD = 100;
@@ -824,21 +824,21 @@ class NPC {
         this.state = Math.random() < 0.3 ? 'talking' : 'idle';
         this.stateCD = 120 + Math.random() * 180;
       }
-      if (this.chatCD <= 0 && Math.random() < 0.012) {
+      if (this.chatCD <= 0 && Math.random() < 0.004) {
         const lines = CHAT_LINES[this.a.div] || ['...'];
         this.chatText = lines[(Math.random() * lines.length) | 0];
-        this.chatTimer = 3000; this.chatCD = 5000 + Math.random() * 4000;
+        this.chatTimer = 3000; this.chatCD = 8000 + Math.random() * 6000;
       }
       if (this.chatTimer <= 0) this.chatText = '';
       return;
     }
 
     // Work-related chat at desk
-    if (this.chatCD <= 0 && (this.state === 'typing' || this.state === 'talking') && Math.random() < 0.018) {
+    if (this.chatCD <= 0 && (this.state === 'typing' || this.state === 'talking') && Math.random() < 0.004) {
       const lines = CHAT_LINES[this.a.div] || ['...'];
       this.chatText = lines[(Math.random() * lines.length) | 0];
       this.chatTimer = 3000 + Math.random() * 1000;
-      this.chatCD = 5000 + Math.random() * 5000;
+      this.chatCD = 10000 + Math.random() * 8000;
     }
 
     // Move toward walk target
