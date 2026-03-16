@@ -634,7 +634,7 @@ function buildDeskSpots() {
     const count = agentCounts[z.id] || 0;
     if (!count) return;
 
-    const DESK_W = 150, DESK_H = 84, LABEL_H = 86, PAD = 14, SPACING = 10;
+    const DESK_W = 150, DESK_H = 84, LABEL_H = 80, PAD = 14, SPACING = 10;
     const innerW = z.w - PAD * 2;
     const innerH = z.h - LABEL_H - PAD * 2;
 
@@ -948,32 +948,34 @@ function renderOffice(ctx, camX, camY, W, H) {
       ctx.beginPath(); ctx.moveTo(px+dx*bl, py); ctx.lineTo(px, py); ctx.lineTo(px, py+dy*bl); ctx.stroke();
     });
 
-    // Zone label header — name + subtitle + member count
+    // Zone label — full-width centered header
     const ZONE_SUBS = {engineering:'Software & DevOps',accusentry:'Quality Control',paivo:'Product & Growth',marketing:'Brand & Content',support:'Finance & Analytics',design:'UI/UX & Brand',sales:'Business Dev',specialized:'Cross-Functional',meeting:'Conference Zone',dance:'Break Zone'};
     const sub = ZONE_SUBS[z.id] || '';
     const mc = AGENTS.filter(a => a.div === z.id).length;
-    const chipW = Math.min(z.w - 20, 210), chipH = 42;
-    const cx0 = zx + 10, cy0 = zy + 8;
+    const hdrH = 58, hdrPad = 6;
+    const hx = zx + hdrPad, hy = zy + 6, hw = z.w - hdrPad*2;
     // Shadow
-    ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(ctx, cx0+2, cy0+3, chipW, chipH, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.5)'; rr(ctx, hx+3, hy+4, hw, hdrH, 10); ctx.fill();
     // Background
-    ctx.fillStyle = 'rgba(4,5,14,.92)'; rr(ctx, cx0, cy0, chipW, chipH, 7); ctx.fill();
-    // Tinted overlay
-    ctx.fillStyle = col + '25'; rr(ctx, cx0, cy0, chipW, chipH, 7); ctx.fill();
-    // Left accent bar
-    ctx.fillStyle = col; ctx.fillRect(cx0, cy0+4, 4, chipH-8);
-    // Division name
-    ctx.font = 'bold 12px Outfit'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(255,255,255,.96)';
-    ctx.fillText(z.label, cx0 + 12, cy0 + 7);
-    // Subtitle
-    ctx.font = '8.5px Outfit'; ctx.fillStyle = col + 'cc';
-    ctx.fillText(sub.toUpperCase(), cx0 + 12, cy0 + 24);
-    // Member count badge
+    ctx.fillStyle = 'rgba(4,5,14,.94)'; rr(ctx, hx, hy, hw, hdrH, 10); ctx.fill();
+    // Color tint overlay
+    ctx.fillStyle = col + '20'; rr(ctx, hx, hy, hw, hdrH, 10); ctx.fill();
+    // Top accent line full width
+    ctx.fillStyle = col; ctx.fillRect(hx+10, hy, hw-20, 3);
+    // Bottom separator
+    ctx.fillStyle = col + '40'; ctx.fillRect(hx+10, hy+hdrH-1, hw-20, 1);
+    // Room name — centered, large
+    ctx.font = 'bold 15px Outfit'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,.97)';
+    ctx.fillText(z.label, zx + z.w/2, hy + 22);
+    // Subtitle — centered, smaller, division color
+    ctx.font = '9px Outfit'; ctx.fillStyle = col + 'dd';
+    ctx.fillText(sub.toUpperCase(), zx + z.w/2, hy + 38);
+    // Agent count — right aligned
     if (mc > 0) {
-      ctx.textAlign = 'right'; ctx.font = 'bold 8px Outfit';
-      ctx.fillStyle = 'rgba(255,255,255,.28)';
-      ctx.fillText(mc + ' agents', cx0 + chipW - 8, cy0 + 17);
+      ctx.font = '8px Outfit'; ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(255,255,255,.22)';
+      ctx.fillText(mc + ' agents', hx + hw - 10, hy + 50);
     }
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
 
