@@ -212,7 +212,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#09090f;font-family:
 <div id="app">
   <div id="topbar">
     <div class="tb-hex"></div><span class="tb-title">Agency OS</span>
-    <div class="tb-div"></div><span class="tb-hint">WASD/Arrows move · E talk · M meeting · D dance</span>
+    <div class="tb-div"></div><span class="tb-hint">WASD/Arrows move · E talk · M meeting · F dance</span>
     <div class="tb-r">
       <div class="mpill" onclick="openMov()"><div class="mdot"></div><span id="mpct">Meeting Room</span><span style="opacity:.4">→</span></div>
       <div class="pp"><div class="pp-a" id="ppAva"></div><span class="pp-n" id="ppN">—</span></div>
@@ -1640,8 +1640,8 @@ function init() {
       if (document.getElementById('mov').classList.contains('on')) { closeMov(); }
       else { openMov(); }
     }
-    // D = dance anywhere
-    if (e.code === 'KeyD') {
+    // F = dance anywhere
+    if (e.code === 'KeyF') {
       plDancing = true;
       plDanceTimer = 4000;
       plChatText = DANCE_LINES[(Math.random() * DANCE_LINES.length) | 0];
