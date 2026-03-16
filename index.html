@@ -711,7 +711,7 @@ class NPC {
     this.tick = Math.random() * 200;
     this.stateCD = 180 + Math.random() * 400;
     this.chatText = '';
-    this.chatCD = 200 + Math.random() * 400;
+    this.chatCD = 8000 + Math.random() * 22000;  // stagger initial burst across 8-30s
     this.chatTimer = 0;
     this.spd = 1.2 + Math.random() * 0.6;
     this.zone = ZONES.find(z => z.id === agentData.div);
@@ -1153,7 +1153,7 @@ function renderOffice(ctx, camX, camY, W, H) {
     });
     // Label
     ctx.fillStyle='rgba(255,0,204,.8)';ctx.font='bold 10px Outfit';ctx.textAlign='center';
-    ctx.fillText('💃 DANCE FLOOR — Press D here to dance! 🕺',dfx+dz.w/2,dfy+dz.h-12);
+    ctx.fillText('💃 DANCE FLOOR — Press F to dance! 🕺',dfx+dz.w/2,dfy+dz.h-12);
     ctx.textAlign='left';
   })();
 
