@@ -1357,6 +1357,28 @@ function renderPlayer(ctx, camX, camY) {
   ctx.fillStyle='rgba(236,234,248,.7)'; ctx.font='500 8px Outfit';
   ctx.fillText(player.name, sx+CW_DRAW/2, tY+19);
   ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+
+  // Dance / player chat bubble
+  if (plChatText && plChatTimer > 0) {
+    const bx = Math.round(sx + CW_DRAW / 2);
+    const by = Math.round(sy - tH - 16);
+    ctx.font = '600 11px Outfit';
+    const bw = Math.min(180, ctx.measureText(plChatText).width + 28);
+    const bh = 26;
+    const bl = bx - bw / 2;
+    const bt = by - bh;
+    const alpha = plChatTimer < 800 ? plChatTimer / 800 : 1;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(8,10,20,.97)'; rr(ctx, bl, bt, bw, bh, 10); ctx.fill();
+    ctx.strokeStyle = '#e8c96acc'; ctx.lineWidth = 1.5; rr(ctx, bl, bt, bw, bh, 10); ctx.stroke();
+    // Tail
+    ctx.fillStyle = 'rgba(8,10,20,.97)';
+    ctx.beginPath(); ctx.moveTo(bx-6, bt+bh); ctx.lineTo(bx+6, bt+bh); ctx.lineTo(bx, bt+bh+8); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(plChatText, bx, bt + bh/2);
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -1452,6 +1474,7 @@ let canvas, ctx, W, H;
 let camX = 0, camY = 0;
 let plX = FW/2, plY = FH/2;
 let plState = 'idle', plTick = 0, plDancing = false, plDanceTimer = 0;
+let plChatText = '', plChatTimer = 0;
 const DANCE_LINES = ['💃 Let\'s go!','🕺 DANCE TIME','Vibes only ✨','This is my jam!','🎵 wooo!','No thoughts, just dancing'];
 let keys = {}, npcs = [], hovA = null, selA = null;
 let meeting = [], activeTab = 'agents', lastT = 0;
@@ -1617,18 +1640,12 @@ function init() {
       if (document.getElementById('mov').classList.contains('on')) { closeMov(); }
       else { openMov(); }
     }
-    // D = dance (only on dance floor)
+    // D = dance anywhere
     if (e.code === 'KeyD') {
-      const dz = ZONES.find(z => z.id === 'dance');
-      const onFloor = dz && plX >= dz.x && plX <= dz.x + dz.w && plY >= dz.y && plY <= dz.y + dz.h;
-      if (onFloor) {
-        plDancing = true;
-        plDanceTimer = 4000;
-        plChatText = DANCE_LINES[(Math.random() * DANCE_LINES.length) | 0];
-        plChatTimer = 3500;
-      } else {
-        toast('💃 Go to the Dance Floor to dance! (bottom-right)');
-      }
+      plDancing = true;
+      plDanceTimer = 4000;
+      plChatText = DANCE_LINES[(Math.random() * DANCE_LINES.length) | 0];
+      plChatTimer = 3500;
     }
   });
   window.addEventListener('keyup', e => keys[e.code] = false);
@@ -1663,6 +1680,7 @@ function loop(t) {
   if (keys['KeyD'] || keys['ArrowRight']) dx = 1;
   plDanceTimer = Math.max(0, plDanceTimer - dt);
   if (plDanceTimer <= 0) plDancing = false;
+  plChatTimer = Math.max(0, plChatTimer - dt);
   const moving = !!(dx || dy);
   plX = Math.max(20, Math.min(FW - 20, plX + dx * SPD));
   plY = Math.max(20, Math.min(FH - 20, plY + dy * SPD));
