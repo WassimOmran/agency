@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agency OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#09090f;font-family:'Outfit',sans-serif;color:#eceaf8}
+#splash,#app{position:fixed;inset:0;z-index:10}
+#app{display:none;flex-direction:column}
+
+#splash{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;
+  background:radial-gradient(ellipse 100% 60% at 50% 110%,rgba(74,144,255,.09),transparent),#09090f}
+.sp-t{font-size:52px;font-weight:900;letter-spacing:-3px;background:linear-gradient(150deg,#fff 0%,rgba(255,255,255,.45));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sp-s{font-size:11px;letter-spacing:5px;text-transform:uppercase;color:rgba(236,234,248,.28);margin-bottom:4px}
+.sp-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-width:820px;width:100%;padding:0 20px}
+.sp-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:18px 10px 14px;cursor:pointer;transition:all .3s cubic-bezier(.34,1.5,.64,1);text-align:center;position:relative;overflow:hidden}
+.sp-card:hover,.sp-card.sel{transform:translateY(-5px) scale(1.02);background:rgba(255,255,255,.06)}
+.sp-card.sel{border-color:rgba(255,255,255,.28)}
+.sp-glow{position:absolute;inset:0;border-radius:18px;opacity:0;transition:opacity .3s}
+.sp-card.sel .sp-glow{opacity:1}
+.sp-fig{width:60px;height:60px;margin:0 auto 12px;position:relative}
+.sp-fig canvas{image-rendering:pixelated;border-radius:8px}
+.sp-n{font-size:12px;font-weight:700;margin-bottom:2px}
+.sp-r{font-size:9px;color:rgba(236,234,248,.4);margin-bottom:7px}
+.sp-d{font-size:8px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.5px;display:inline-block}
+.sp-btn{padding:14px 48px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:100px;color:#eceaf8;cursor:pointer;transition:all .3s}
+.sp-btn:hover{background:rgba(255,255,255,.12)}.sp-btn:disabled{opacity:.2;cursor:not-allowed}
+
+#topbar{height:52px;flex-shrink:0;display:flex;align-items:center;gap:14px;padding:0 18px;background:rgba(6,7,11,.88);border-bottom:1px solid rgba(255,255,255,.07);backdrop-filter:blur(40px);z-index:50}
+.tb-hex{width:26px;height:26px;background:linear-gradient(135deg,#c8a84b,#e8c96a);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);filter:drop-shadow(0 0 6px rgba(200,168,75,.5))}
+.tb-title{font-size:14px;font-weight:700}.tb-div{width:1px;height:18px;background:rgba(255,255,255,.08)}
+.tb-hint{font-size:11px;color:rgba(236,234,248,.3)}
+.tb-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.mpill{display:flex;align-items:center;gap:7px;padding:5px 14px;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.2);border-radius:100px;cursor:pointer;transition:all .2s;font-size:12px;color:#e8c96a;font-weight:600}
+.mpill:hover{background:rgba(200,168,75,.14)}
+.mdot{width:5px;height:5px;border-radius:50%;background:#c8a84b;box-shadow:0 0 6px #c8a84b;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.pp{display:flex;align-items:center;gap:7px;padding:3px 12px 3px 3px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:100px}
+.pp-a{width:34px;height:34px;border-radius:50%;overflow:hidden;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center}
+.pp-a canvas{image-rendering:pixelated}
+.pp-n{font-size:12px;font-weight:600}
+#main{flex:1;display:flex;overflow:hidden}
+#cw{flex:1;position:relative;overflow:hidden;background:#0d0e16}
+#gc{display:block;image-rendering:pixelated}
+
+/* Popup */
+#pop{position:fixed;z-index:60;width:210px;background:rgba(8,9,16,.97);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:12px;backdrop-filter:blur(60px);box-shadow:0 20px 56px rgba(0,0,0,.7);opacity:0;pointer-events:none;transform:translateY(5px);transition:opacity .14s,transform .14s}
+#pop.on{opacity:1;pointer-events:all;transform:translateY(0)}
+.pop-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pop-ava{width:40px;height:40px;flex-shrink:0;image-rendering:pixelated;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center}
+.pop-ava canvas{image-rendering:pixelated}
+.pop-nm{font-size:13px;font-weight:700}.pop-rl{font-size:9px;color:rgba(236,234,248,.45);margin-top:1px}
+.pop-txt{font-size:10px;color:rgba(236,234,248,.5);line-height:1.6;margin-bottom:8px}
+.pop-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
+.ptag{font-size:8px;font-weight:700;padding:2px 6px;border-radius:20px}
+.pop-btns{display:flex;gap:5px}
+.pb{flex:1;padding:6px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .14s}
+.pb.a{background:rgba(255,255,255,.88);color:#09090f}.pb.a:hover{background:#fff}
+.pb.b{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#eceaf8}.pb.b:hover{background:rgba(255,255,255,.12)}
+
+/* Panel */
+#panel{width:280px;flex-shrink:0;background:rgba(6,7,11,.62);border-left:1px solid rgba(255,255,255,.07);backdrop-filter:blur(40px);display:flex;flex-direction:column;overflow:hidden}
+.ptabs{display:flex;padding:8px 8px 0;gap:3px}
+.ptt{flex:1;padding:7px;border-radius:8px;font-size:11px;font-weight:500;text-align:center;cursor:pointer;color:rgba(236,234,248,.4);border:1px solid transparent;background:none;font-family:'Outfit',sans-serif;transition:all .14s}
+.ptt:hover{color:#eceaf8;background:rgba(255,255,255,.04)}.ptt.on{color:#eceaf8;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1)}
+.pbody{flex:1;overflow-y:auto;padding:8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.07) transparent}
+.pbody::-webkit-scrollbar{width:2px}.pbody::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07)}
+.dh{display:flex;align-items:center;gap:6px;padding:7px 0 3px;margin-top:2px}
+.dd{width:6px;height:6px;border-radius:50%}.dl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}.dc{margin-left:auto;font-size:9px;color:rgba(236,234,248,.22)}
+.ar{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:10px;cursor:pointer;transition:all .13s;border:1px solid transparent;margin-bottom:2px}
+.ar:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.07)}.ar.im{background:rgba(200,168,75,.05);border-color:rgba(200,168,75,.18)}
+.ar-f{width:28px;height:28px;flex-shrink:0;image-rendering:pixelated;overflow:hidden;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.ar-i{flex:1;min-width:0}.ar-n{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ar-r{font-size:9px;color:rgba(236,234,248,.38)}
+.ar-a{width:20px;height:20px;border-radius:6px;background:none;border:1px solid rgba(255,255,255,.1);color:rgba(236,234,248,.38);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .13s;flex-shrink:0;font-family:'Outfit',sans-serif}
+.ar-a:hover{border-color:#c8a84b;color:#c8a84b}.ar-a.on{border-color:#c8a84b;color:#c8a84b;background:rgba(200,168,75,.1)}
+.me{text-align:center;padding:36px 14px;color:rgba(236,234,248,.22);font-size:11px;line-height:2}
+.ms{display:flex;align-items:center;gap:8px;padding:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:11px;margin-bottom:5px;position:relative;overflow:hidden}
+.ms-b{position:absolute;left:0;top:0;bottom:0;width:2px}.ms-f{width:28px;height:28px;flex-shrink:0;image-rendering:pixelated;overflow:hidden;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.ms-i{flex:1}.ms-n{font-size:11px;font-weight:600}.ms-r{font-size:9px;color:rgba(236,234,248,.38)}
+.ms-x{width:16px;height:16px;border-radius:5px;background:none;border:1px solid rgba(255,68,68,.2);color:rgba(255,68,68,.4);cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;transition:all .13s}
+.ms-x:hover{background:rgba(255,68,68,.12);color:#ff4444;border-color:#ff4444}
+.ml{width:100%;margin-top:8px;padding:11px;background:linear-gradient(135deg,rgba(200,168,75,.18),rgba(232,201,106,.07));border:1px solid rgba(200,168,75,.28);border-radius:10px;color:#e8c96a;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .22s}
+.ml:hover:not(:disabled){box-shadow:0 0 28px rgba(200,168,75,.18)}.ml:disabled{opacity:.22;cursor:not-allowed}
+.ic{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px;margin-bottom:7px}
+.if{width:64px;height:64px;margin:0 auto 8px;image-rendering:pixelated;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.in{text-align:center;font-size:15px;font-weight:800}.ir{text-align:center;font-size:9px;font-weight:700;letter-spacing:.5px;margin-bottom:9px}
+.isep{height:1px;background:rgba(255,255,255,.06);margin:8px 0}
+.ilbl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(236,234,248,.22);margin-bottom:5px}
+.itxt{font-size:10px;color:rgba(236,234,248,.48);line-height:1.7}
+.irule{font-size:10px;color:rgba(236,234,248,.48);padding:4px 0;display:flex;gap:6px;line-height:1.5;border-bottom:1px solid rgba(255,255,255,.03)}
+.irule::before{content:'→';color:rgba(236,234,248,.22);flex-shrink:0}
+.ibtn{width:100%;margin-top:8px;padding:8px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#eceaf8}
+.ibtn:hover{background:rgba(255,255,255,.09)}.ibtn.on{background:rgba(200,168,75,.1);border-color:rgba(200,168,75,.3);color:#e8c96a}
+
+#amod{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:30px;background:rgba(5,6,10,.78);backdrop-filter:blur(20px)}
+#amod.on{display:flex}
+.amb{background:rgba(8,9,17,.97);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:20px;max-width:430px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 40px 100px rgba(0,0,0,.8);scrollbar-width:thin}
+.am-t{display:flex;gap:12px;margin-bottom:15px;align-items:flex-start}
+.am-fig{width:64px;height:64px;flex-shrink:0;border-radius:12px;overflow:hidden;image-rendering:pixelated;display:flex;align-items:center;justify-content:center}
+.am-n{font-size:18px;font-weight:800;letter-spacing:-.5px}.am-d{font-size:10px;font-weight:700;letter-spacing:.5px;margin-top:2px}
+.am-s{font-size:9px;color:rgba(236,234,248,.38);margin-top:4px;line-height:1.6;font-family:'JetBrains Mono',monospace}
+.am-x{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(236,234,248,.45);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .13s}
+.am-sl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(236,234,248,.22);margin:12px 0 5px;padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,.06)}
+.am-id{font-size:11px;color:rgba(236,234,248,.52);line-height:1.7;font-style:italic;padding:8px;background:rgba(255,255,255,.03);border-radius:8px}
+.am-ru{font-size:10px;color:rgba(236,234,248,.48);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);display:flex;gap:7px;line-height:1.5}
+.am-ru::before{content:'→';color:rgba(236,234,248,.22);flex-shrink:0}
+.am-dl{font-size:10px;color:rgba(236,234,248,.48);padding:3px 0;display:flex;gap:7px}
+.am-dl::before{content:'◇';font-size:8px;color:rgba(236,234,248,.22);flex-shrink:0;margin-top:2px}
+.am-f{display:flex;gap:7px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)}
+.ambt{flex:1;padding:10px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all .2s}
+.ambt.p{background:rgba(255,255,255,.88);color:#09090f}.ambt.p:hover{background:#fff}
+.ambt.s{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#eceaf8}
+.ambt.r{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.22);color:#ff7070}
+
+#mov{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:40px;background:rgba(5,6,10,.96);backdrop-filter:blur(50px)}
+#mov.on{display:flex}
+.mo-l{font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#c8a84b;text-align:center}
+.mo-h{font-size:36px;font-weight:900;letter-spacing:-2px;text-align:center}
+.mo-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:740px}
+.mo-c{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 8px;width:90px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:15px;cursor:pointer;transition:all .22s;overflow:hidden}
+.mo-c:hover{border-color:rgba(255,68,68,.4);background:rgba(255,68,68,.06);transform:translateY(-2px)}
+.mo-cf{width:44px;height:44px;image-rendering:pixelated;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.mo-cn{font-size:9px;font-weight:700;text-align:center;line-height:1.3}.mo-cr{font-size:8px;color:rgba(236,234,248,.38);text-align:center}
+.mo-ta{width:100%;max-width:580px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:15px;overflow:hidden}
+.mo-tah{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(236,234,248,.28)}
+.mo-ta textarea{width:100%;background:none;border:none;outline:none;color:#eceaf8;font-family:'Outfit',sans-serif;font-size:13px;padding:12px 14px;min-height:64px;resize:none;line-height:1.6}
+.mo-ta textarea::placeholder{color:rgba(236,234,248,.18)}
+.mo-taf{padding:8px 14px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:flex-end;gap:7px}
+.mo-cp{padding:9px 20px;background:rgba(255,255,255,.88);border:none;border-radius:8px;color:#09090f;font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s}
+.mo-cp:hover{background:#fff;transform:scale(1.02)}
+.mo-cl{padding:9px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(236,234,248,.45);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer}.mo-cl:hover{color:#eceaf8}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(14px);background:rgba(8,9,17,.95);border:1px solid rgba(255,255,255,.1);color:#eceaf8;font-size:12px;font-weight:500;padding:8px 18px;border-radius:100px;opacity:0;transition:all .22s;pointer-events:none;z-index:999;white-space:nowrap;backdrop-filter:blur(40px)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="splash">
+  <div style="text-align:center"><div class="sp-s">Wassim Omran · Agency OS</div><div class="sp-t">Create Your Character</div></div>
+
+  <div style="display:flex;gap:32px;align-items:flex-start;max-width:760px;width:100%;padding:0 20px">
+
+    <!-- Live preview -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0">
+      <div style="width:100px;height:120px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        <canvas id="previewCanvas" width="64" height="96" style="image-rendering:pixelated;width:80px;height:96px"></canvas>
+      </div>
+      <div style="font-size:11px;color:rgba(236,234,248,.3);text-align:center">Your character</div>
+    </div>
+
+    <!-- Config -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+      <!-- Name -->
+      <div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(236,234,248,.35);margin-bottom:6px">Your Name</div>
+        <input id="playerName" type="text" placeholder="Enter your name..." maxlength="20"
+          style="width:100%;padding:10px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#eceaf8;font-family:Outfit,sans-serif;font-size:14px;font-weight:600;outline:none"
+          oninput="updatePreview()">
+      </div>
+      <!-- Skin -->
+      <div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(236,234,248,.35);margin-bottom:6px">Skin Tone</div>
+        <div style="display:flex;gap:8px" id="skinPicker"></div>
+      </div>
+      <!-- Hair -->
+      <div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(236,234,248,.35);margin-bottom:6px">Hair Color</div>
+        <div style="display:flex;gap:8px" id="hairPicker"></div>
+      </div>
+      <!-- Hair style -->
+      <div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(236,234,248,.35);margin-bottom:6px">Hair Style</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="stylePicker"></div>
+      </div>
+      <!-- Shirt -->
+      <div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(236,234,248,.35);margin-bottom:6px">Outfit Color</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="shirtPicker"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="sp-btn" id="spBtn" onclick="go()" disabled>Enter the Office →</button>
+</div>
+
+<!-- Talk dialog -->
+<div id="talkDlg" style="display:none;position:fixed;inset:0;z-index:90;align-items:flex-end;justify-content:center;padding-bottom:80px;background:rgba(0,0,0,.4);backdrop-filter:blur(4px)">
+  <div style="width:100%;max-width:520px;background:rgba(8,10,20,.97);border:1px solid rgba(255,255,255,.14);border-radius:20px 20px 0 0;padding:20px 20px 0">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div id="talkAva" style="width:44px;height:52px;overflow:hidden;image-rendering:pixelated;border-radius:8px;flex-shrink:0;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center"></div>
+      <div>
+        <div id="talkName" style="font-size:14px;font-weight:700"></div>
+        <div id="talkRole" style="font-size:10px;color:rgba(236,234,248,.45)"></div>
+      </div>
+      <button onclick="closeTalk()" style="margin-left:auto;width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(236,234,248,.5);cursor:pointer;font-size:13px">✕</button>
+    </div>
+    <!-- Chat history -->
+    <div id="talkHistory" style="height:180px;overflow-y:auto;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.07) transparent;padding-right:4px"></div>
+    <!-- Input row -->
+    <div style="display:flex;gap:8px;padding-bottom:16px">
+      <input id="talkInput" type="text" placeholder="Say something..." maxlength="120"
+        style="flex:1;padding:9px 13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#eceaf8;font-family:Outfit,sans-serif;font-size:13px;outline:none"
+        onkeydown="if(event.key==='Enter')sendTalk()">
+      <button onclick="sendTalk()"
+        style="padding:9px 18px;background:rgba(255,255,255,.88);border:none;border-radius:10px;color:#09090f;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;cursor:pointer">Send</button>
+    </div>
+  </div>
+</div>
+<div id="app">
+  <div id="topbar">
+    <div class="tb-hex"></div><span class="tb-title">Agency OS</span>
+    <div class="tb-div"></div><span class="tb-hint">WASD move · E talk · M meeting</span>
+    <div class="tb-r">
+      <div class="mpill" onclick="openMov()"><div class="mdot"></div><span id="mpct">Meeting Room</span><span style="opacity:.4">→</span></div>
+      <div class="pp"><div class="pp-a" id="ppAva"></div><span class="pp-n" id="ppN">—</span></div>
+    </div>
+  </div>
+  <div id="main">
+    <div id="cw">
+      <canvas id="gc"></canvas>
+    </div>
+    <div id="panel">
+      <div class="ptabs">
+        <button class="ptt on" onclick="swt('agents',this)">Agents</button>
+        <button class="ptt" onclick="swt('meeting',this)">Meeting</button>
+        <button class="ptt" onclick="swt('info',this)">Profile</button>
+      </div>
+      <div class="pbody" id="pbody"></div>
+    </div>
+  </div>
+</div>
+<div id="pop">
+  <div class="pop-top"><div class="pop-ava" id="popAva"></div><div><div class="pop-nm" id="popNm"></div><div class="pop-rl" id="popRl"></div></div></div>
+  <div class="pop-txt" id="popTxt"></div>
+  <div class="pop-tags" id="popTags"></div>
+  <div class="pop-btns"><button class="pb a" id="popAdd">Add to Meeting</button><button class="pb b" id="popInfo">Profile</button></div>
+</div>
+<div id="amod" onclick="cmod(event)"><div class="amb" id="amBox"></div></div>
+<div id="mov">
+  <div><div class="mo-l">Session Room</div><div class="mo-h" id="movH">Meeting</div></div>
+  <div class="mo-row" id="movRow"></div>
+  <div class="mo-ta">
+    <div class="mo-tah">Task for this team</div>
+    <textarea id="movTa" placeholder="Describe what you need from this assembled team..."></textarea>
+    <div class="mo-taf"><button class="mo-cl" onclick="closeMov()">Close</button><button class="mo-cp" onclick="copyPr()">Copy Team Prompt ↗</button></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  CHARACTER RENDERER — crisp squared canvas characters
+//  Each character: 32×48 px logical, drawn at 2x scale
+//  No SVG, no lag, pure canvas drawing calls
+// ════════════════════════════════════════════════════════
+
+const CHAR_W = 32, CHAR_H = 48; // logical
+const CHAR_SCALE = 2;           // render at 2x
+
+// Palette pools
+const SKIN = ['#fde2b4','#f5c48a','#e8a060','#c87838','#9a5820','#6e3810'];
+const HAIR_COL = ['#1a0800','#3d1500','#6b3010','#a05010','#c89020','#e8c860','#888','#2a2040','#4a0808'];
+const SHIRT_COL = ['#1e3a6e','#6b21a8','#065f46','#9a1220','#92400e','#0f5188','#7e22ce','#0f766e','#1e4040','#8b2252'];
+const PANT_COL = ['#1e293b','#0f172a','#312e81','#1c1917','#14532d','#2d1b1b'];
+const HAIR_STYLE = ['short','fade','curly','bun','long','side'];
+
+function h8(s, m) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h % m;
+}
+
+// Pre-generate character appearance config
+function getAppearance(agent) {
+  const id = agent.id;
+  return {
+    skin:   SKIN[h8(id+'sk', SKIN.length)],
+    hair:   HAIR_COL[h8(id+'ha', HAIR_COL.length)],
+    hStyle: HAIR_STYLE[h8(id+'hs', HAIR_STYLE.length)],
+    shirt:  SHIRT_COL[h8(id+'sh', SHIRT_COL.length)],
+    pants:  PANT_COL[h8(id+'pt', PANT_COL.length)],
+    fem:    h8(id+'gn', 2) === 0,
+    glasses:h8(id+'gl', 5) === 0,
+    divCol: DIVS[agent.div]?.color || '#4a90ff',
+  };
+}
+
+// ─────────────────────────────────────────
+//  CORE DRAW FUNCTION — draws one character
+//  onto any canvas context at (0,0)
+//  Logical size: CHAR_W × CHAR_H
+// ─────────────────────────────────────────
+function drawChar(ctx, ap, state, tick) {
+  const W = CHAR_W, H = CHAR_H;
+  const S = 1; // pixel unit
+
+  // Animation values
+  const t = tick;
+  const walkCycle = Math.sin(t * 0.22);
+  const idleBob   = Math.sin(t * 0.06) * 0.5;
+  const typePulse = Math.abs(Math.sin(t * 0.25));
+
+  // Layout constants (in logical px)
+  const cx = W / 2;
+  const headSize = 12;  // square head width/height
+  const headX = cx - headSize / 2;
+  const headY = 4 + (state === 'idle' ? idleBob : 0);
+
+  const bodyW = 14, bodyH = 14;
+  const bodyX = cx - bodyW / 2;
+  const bodyY = headY + headSize + 2;
+
+  const legW = 5, legH = 10;
+  const legLY = bodyY + bodyH;
+
+  // ── SHADOW ──
+  ctx.fillStyle = 'rgba(0,0,0,.25)';
+  ctx.beginPath();
+  ctx.ellipse(cx, H - 3, 9, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── LEGS ──
+  if (state === 'walking') {
+    const la = walkCycle * 5;
+    const ra = -walkCycle * 5;
+    // Left leg
+    ctx.fillStyle = ap.pants;
+    ctx.save(); ctx.translate(bodyX + 2, legLY); ctx.rotate(la * Math.PI / 180);
+    ctx.fillRect(0, 0, legW, legH); ctx.restore();
+    // Right leg
+    ctx.save(); ctx.translate(bodyX + bodyW - legW - 2, legLY); ctx.rotate(ra * Math.PI / 180);
+    ctx.fillRect(0, 0, legW, legH); ctx.restore();
+    // Shoes
+    ctx.fillStyle = '#111';
+    ctx.fillRect(bodyX + 1, legLY + legH - 1, legW + 2, 3);
+    ctx.fillRect(bodyX + bodyW - legW - 3, legLY + legH - 1, legW + 2, 3);
+  } else if (state === 'typing') {
+    ctx.fillStyle = ap.pants;
+    ctx.fillRect(bodyX + 2, legLY, legW, legH - 2);
+    ctx.fillRect(bodyX + bodyW - legW - 2, legLY, legW, legH - 2);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(bodyX + 1, legLY + legH - 3, legW + 2, 3);
+    ctx.fillRect(bodyX + bodyW - legW - 3, legLY + legH - 3, legW + 2, 3);
+  } else {
+    ctx.fillStyle = ap.pants;
+    ctx.fillRect(bodyX + 2, legLY, legW, legH);
+    ctx.fillRect(bodyX + bodyW - legW - 2, legLY, legW, legH);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(bodyX + 1, legLY + legH - 1, legW + 2, 3);
+    ctx.fillRect(bodyX + bodyW - legW - 3, legLY + legH - 1, legW + 2, 3);
+  }
+
+  // ── BODY / SHIRT ──
+  // Main shirt
+  ctx.fillStyle = ap.shirt;
+  ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+  // Shirt highlight (top edge)
+  ctx.fillStyle = 'rgba(255,255,255,.18)';
+  ctx.fillRect(bodyX, bodyY, bodyW, 2);
+  // Shirt shadow (bottom edge)
+  ctx.fillStyle = 'rgba(0,0,0,.2)';
+  ctx.fillRect(bodyX, bodyY + bodyH - 2, bodyW, 2);
+  // Division badge dot
+  ctx.fillStyle = ap.divCol;
+  ctx.fillRect(bodyX + bodyW - 5, bodyY + 4, 3, 3);
+  // Shirt collar notch
+  ctx.fillStyle = ap.skin;
+  ctx.fillRect(cx - 2, bodyY, 4, 3);
+
+  // ── ARMS ──
+  ctx.fillStyle = ap.skin;
+  if (state === 'typing') {
+    // Arms forward/down at keyboard
+    const tap = typePulse * 2;
+    ctx.fillRect(bodyX - 3, bodyY + 2, 4, 8 + tap);
+    ctx.fillRect(bodyX + bodyW - 1, bodyY + 2, 4, 8 + tap);
+    // Hands
+    ctx.fillRect(bodyX - 4, bodyY + 9 + tap, 5, 4);
+    ctx.fillRect(bodyX + bodyW, bodyY + 9 + tap, 5, 4);
+  } else if (state === 'walking') {
+    const swing = walkCycle * 6;
+    ctx.fillRect(bodyX - 3, bodyY + 2 + swing, 4, 9);
+    ctx.fillRect(bodyX + bodyW - 1, bodyY + 2 - swing, 4, 9);
+  } else if (state === 'talking') {
+    const wave = Math.sin(t * 0.18) * 4;
+    ctx.fillRect(bodyX - 3, bodyY + 2, 4, 9);
+    // Raised talking arm
+    ctx.fillRect(bodyX + bodyW - 1, bodyY - 2 + wave, 4, 9);
+  } else {
+    ctx.fillRect(bodyX - 3, bodyY + 3, 4, 8);
+    ctx.fillRect(bodyX + bodyW - 1, bodyY + 3, 4, 8);
+  }
+
+  // ── NECK ──
+  ctx.fillStyle = ap.skin;
+  ctx.fillRect(cx - 2, headY + headSize - 1, 4, 4);
+
+  // ── HEAD ──
+  // Head base (square with slight rounding via multiple rects)
+  ctx.fillStyle = ap.skin;
+  ctx.fillRect(headX + 1, headY, headSize - 2, headSize);
+  ctx.fillRect(headX, headY + 1, headSize, headSize - 2);
+  // Head shadow (right + bottom)
+  ctx.fillStyle = shadeColor(ap.skin, -15);
+  ctx.fillRect(headX + headSize - 2, headY + 2, 2, headSize - 3);
+  ctx.fillRect(headX + 1, headY + headSize - 2, headSize - 2, 2);
+
+  // ── HAIR ──
+  ctx.fillStyle = ap.hair;
+  const hs = ap.hStyle;
+  if (hs === 'short' || hs === 'fade') {
+    ctx.fillRect(headX, headY - 2, headSize, 5);
+    ctx.fillRect(headX - 1, headY, 2, 6);
+    ctx.fillRect(headX + headSize - 1, headY, 2, 6);
+    if (hs === 'fade') {
+      ctx.fillStyle = shadeColor(ap.hair, 20);
+      ctx.fillRect(headX, headY - 3, headSize, 2);
+    }
+  } else if (hs === 'curly') {
+    ctx.fillRect(headX - 1, headY - 3, headSize + 2, 6);
+    ctx.fillRect(headX - 2, headY, 3, 7);
+    ctx.fillRect(headX + headSize - 1, headY, 3, 7);
+    // Curly bumps
+    for (let i = 0; i < 4; i++) {
+      ctx.fillRect(headX + i * 3, headY - 4, 2, 2);
+    }
+  } else if (hs === 'bun') {
+    ctx.fillRect(headX, headY - 2, headSize, 4);
+    ctx.fillRect(headX - 1, headY, 2, 5);
+    // Bun circle
+    ctx.fillStyle = ap.hair;
+    ctx.fillRect(headX + headSize - 5, headY - 6, 7, 7);
+    ctx.fillStyle = shadeColor(ap.hair, -20);
+    ctx.fillRect(headX + headSize - 4, headY - 5, 5, 5);
+  } else if (hs === 'long') {
+    ctx.fillRect(headX - 1, headY - 2, headSize + 2, 4);
+    ctx.fillRect(headX - 2, headY, 3, headSize + 6);
+    ctx.fillRect(headX + headSize - 1, headY, 3, headSize + 6);
+  } else { // side
+    ctx.fillRect(headX - 1, headY - 2, headSize + 2, 4);
+    ctx.fillRect(headX - 1, headY, 2, 6);
+    ctx.fillRect(headX + headSize - 1, headY, 2, 6);
+    ctx.fillRect(headX - 1, headY - 1, 6, 2);
+  }
+
+  // ── FACE ──
+  const eyeY = headY + 4;
+  const eyeLX = headX + 3, eyeRX = headX + headSize - 6;
+  // Eye whites
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(eyeLX, eyeY, 4, 4);
+  ctx.fillRect(eyeRX, eyeY, 4, 4);
+  // Iris
+  const irisColors = ['#2a1a08','#1a2a38','#183018','#2a1028','#0a1830'];
+  ctx.fillStyle = irisColors[h8(ap.skin + 'i', irisColors.length)];
+  ctx.fillRect(eyeLX + 1, eyeY + 1, 2, 2);
+  ctx.fillRect(eyeRX + 1, eyeY + 1, 2, 2);
+  // Pupils
+  ctx.fillStyle = '#000';
+  ctx.fillRect(eyeLX + 1, eyeY + 1, 1, 1);
+  ctx.fillRect(eyeRX + 1, eyeY + 1, 1, 1);
+  // Eye glint
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  ctx.fillRect(eyeLX + 2, eyeY, 1, 1);
+  ctx.fillRect(eyeRX + 2, eyeY, 1, 1);
+
+  // Eyebrows
+  ctx.fillStyle = ap.hair;
+  if (state === 'typing') {
+    ctx.fillRect(eyeLX, eyeY - 2, 4, 1);
+    ctx.fillRect(eyeRX, eyeY - 2, 4, 1);
+  } else {
+    ctx.fillRect(eyeLX, eyeY - 2, 4, 1);
+    ctx.fillRect(eyeRX, eyeY - 2, 4, 1);
+  }
+
+  // Nose (subtle)
+  ctx.fillStyle = shadeColor(ap.skin, -12);
+  ctx.fillRect(cx - 1, headY + 7, 1, 2);
+
+  // Mouth
+  const mouthY = headY + headSize - 4;
+  ctx.fillStyle = shadeColor(ap.skin, -20);
+  if (state === 'talking') {
+    // Open mouth talking
+    ctx.fillRect(cx - 2, mouthY, 4, 2);
+    ctx.fillStyle = '#6b1a1a';
+    ctx.fillRect(cx - 1, mouthY, 2, 1);
+  } else if (state === 'typing') {
+    // Focused expression - slight frown
+    ctx.fillRect(cx - 2, mouthY, 2, 1);
+    ctx.fillRect(cx, mouthY + 1, 2, 1);
+  } else {
+    // Slight smile
+    ctx.fillRect(cx - 2, mouthY + 1, 2, 1);
+    ctx.fillRect(cx, mouthY, 2, 1);
+    ctx.fillRect(cx - 3, mouthY + 1, 1, 1);
+    ctx.fillRect(cx + 2, mouthY + 1, 1, 1);
+  }
+
+  // Ear
+  ctx.fillStyle = shadeColor(ap.skin, -8);
+  ctx.fillRect(headX - 1, headY + 4, 2, 4);
+  ctx.fillRect(headX + headSize - 1, headY + 4, 2, 4);
+
+  // ── GLASSES (optional) ──
+  if (ap.glasses) {
+    ctx.strokeStyle = 'rgba(220,220,240,.75)';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(eyeLX - 0.5, eyeY - 0.5, 5, 5);
+    ctx.strokeRect(eyeRX - 0.5, eyeY - 0.5, 5, 5);
+    ctx.beginPath();
+    ctx.moveTo(eyeLX + 4.5, eyeY + 2);
+    ctx.lineTo(eyeRX - 0.5, eyeY + 2);
+    ctx.stroke();
+  }
+}
+
+function shadeColor(hex, pct) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, (n >> 16) + pct));
+  const g = Math.max(0, Math.min(255, ((n >> 8) & 0xff) + pct));
+  const b = Math.max(0, Math.min(255, (n & 0xff) + pct));
+  return `rgb(${r},${g},${b})`;
+}
+
+// ─────────────────────────────
+// Pre-bake character into offscreen canvas for fast reuse
+// Returns ImageBitmap-like canvas
+// ─────────────────────────────
+const charFrameCache = new Map();
+function getCharFrame(agent, state, tick) {
+  const bucket = (tick / 3) | 0; // quantize to reduce rerenders
+  const key = agent.id + state + (bucket % 30);
+  if (charFrameCache.has(key)) return charFrameCache.get(key);
+  // Limit cache size
+  if (charFrameCache.size > 400) {
+    const firstKey = charFrameCache.keys().next().value;
+    charFrameCache.delete(firstKey);
+  }
+  const oc = document.createElement('canvas');
+  oc.width = CHAR_W * CHAR_SCALE;
+  oc.height = CHAR_H * CHAR_SCALE;
+  const octx = oc.getContext('2d');
+  octx.imageSmoothingEnabled = false;
+  octx.scale(CHAR_SCALE, CHAR_SCALE);
+  drawChar(octx, getAppearance(agent), state, bucket * 3);
+  charFrameCache.set(key, oc);
+  return oc;
+}
+
+// ════════════════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════════════════
+const DIVS = {
+  engineering:{label:'Engineering',color:'#4a90ff'},
+  accusentry:{label:'AccuSentry',color:'#ff8c3a'},
+  paivo:{label:'Paivo',color:'#2ee8a5'},
+  marketing:{label:'Marketing',color:'#ff5090'},
+  support:{label:'Support',color:'#78e040'},
+  design:{label:'Design',color:'#b060ff'},
+  sales:{label:'Sales',color:'#ff4444'},
+  specialized:{label:'Specialized',color:'#60a0ff'},
+};
+
+const AGENTS = [
+  {id:'zara',name:'Zara',role:'Frontend Dev',div:'engineering',identity:'Obsessed with pixel-perfect UI. Flutter & React wizard.',mission:'Build production UIs for Paivo, Krono, and every web surface.',rules:['Flutter for all Paivo screens','Material 3 always','Loading, empty, error states mandatory'],deliverables:['Flutter widgets','React components','HTML/CSS/JS'],stack:'Flutter · React · Dart · Tailwind'},
+  {id:'ramib',name:'Rami B.',role:'Backend Arch.',div:'engineering',identity:'Ruthless about clean architecture. "That will not scale."',mission:'Design FastAPI systems for Paivo and AccuSentry.',rules:['Pydantic models on every route','TimescaleDB for time-series','Service layer always'],deliverables:['FastAPI routes','Migrations','Test suites'],stack:'FastAPI · Python · TimescaleDB · Supabase'},
+  {id:'layla',name:'Layla',role:'AI Engineer',div:'engineering',identity:'Applied ML who ships models that run on plant floors.',mission:'PyTorch for AccuSentry defect detection and Paivo AI.',rules:['Simplest model first','ONNX for edge','Confusion matrix before production'],deliverables:['Train scripts','ONNX model','Performance report'],stack:'PyTorch · ONNX · OpenCV · FastAPI'},
+  {id:'kareem',name:'Kareem',role:'PLC Engineer',div:'engineering',identity:'"What is the safe state?" — always his first question.',mission:'Design PLC logic for NAPCO lines, integrate AccuSentry.',rules:['Safety interlocks always hardwired','Comment every rung','Simulate before download'],deliverables:['TIA Portal programs','I/O list','Reject timing calc'],stack:'Ladder Logic · TIA Portal · Modbus'},
+  {id:'dani',name:'Dani',role:'DevOps',div:'engineering',identity:'If a human does it twice, a machine should do it.',mission:'Automate deployment pipelines for Paivo and Krono.',rules:['Secrets in env vars only','Docker multi-stage','Health checks everywhere'],deliverables:['Dockerfile','GitHub Actions','Nginx config'],stack:'Docker · GitHub Actions · Railway · Linux'},
+  {id:'maya',name:'Maya',role:'Security Eng.',div:'engineering',identity:'Paranoid by profession. Reads OWASP for fun.',mission:'Secure every API and app Wassim ships.',rules:['Supabase RLS mandatory','JWT 15min / 7d refresh','Never log PII'],deliverables:['Threat model','RLS policies','Security checklist'],stack:'JWT · Supabase RLS · OWASP'},
+  {id:'hassan',name:'Hassan',role:'Camera Inspector',div:'accusentry',identity:'Technical memory for all AccuSentry across NAPCO.',mission:'Configure and tune Sentry 9000/10 on all lines.',rules:['Document before changing','Single lane first','PPM targets non-negotiable'],deliverables:['Settings doc','PPM analysis','Reject delay calc'],stack:'AccuSentry · Sentry 9000/10'},
+  {id:'rana',name:'Rana',role:'Defect Analyst',div:'accusentry',identity:'Built the 82-camera vs 190-QC defect mapping matrix.',mission:'Unify AccuSentry defect catalogs with QC.',rules:['Every camera code maps to QC','Red=critical Yellow=major','Fix the 20% causing 80%'],deliverables:['Color-coded Excel','Pareto charts','Root cause reports'],stack:'Excel · QC System · Color Mapping'},
+  {id:'omar',name:'Omar',role:'Inventory Ctrl.',div:'accusentry',identity:'Built the 22-sheet 420-formula AccuSentry workbook.',mission:'Manage spare parts, maintenance logs, loans.',rules:['Every transaction same day','Reorder = lead time × 1.5','Monthly cost to dept head'],deliverables:['22-sheet workbook','Cost report','Reorder requests'],stack:'Excel · 420+ Formulas'},
+  {id:'farid',name:'Farid',role:'Dashboard Builder',div:'accusentry',identity:'Designed the dual-ethernet AccuSentry data bridge.',mission:'Build real-time KPI dashboards for NAPCO lines.',rules:['Latency < 30 seconds','Shift reports auto-generated','Readable from 3 meters'],deliverables:['Python pipeline','WebSocket dashboard','TimescaleDB schema'],stack:'Python · TimescaleDB · FastAPI'},
+  {id:'bilal',name:'Bilal',role:'Maint. Planner',div:'accusentry',identity:'Unplanned downtime is a planning failure.',mission:'Plan preventive maintenance for AccuSentry.',rules:['PM based on failure history','Every WO gets root cause','No system >90d without lens clean'],deliverables:['PM Gantt','Work order templates','MTBF tracking'],stack:'Excel · PM Schedules · OEE'},
+  {id:'lina',name:'Lina',role:'Gym Specialist',div:'paivo',identity:'Interviewed 20+ gym owners. Knows the chaos.',mission:'Build Paivo gym profile: members, classes, billing.',rules:['Check-in works offline','Subscription handles pause/resume','WhatsApp mandatory in MENA'],deliverables:['Gym Flutter screens','FastAPI gym module','Stripe config'],stack:'Flutter · Stripe · Supabase · WhatsApp'},
+  {id:'tariq',name:'Tariq',role:'Phone Store Mgr',div:'paivo',identity:'Knows the IMEI chaos of KSA and Lebanon.',mission:'IMEI tracking, repair workflow, buy/sell/trade.',rules:['Every device gets IMEI','Blacklist check before sale','Buy-back needs approval'],deliverables:['Phone store screens','IMEI schema','WhatsApp templates'],stack:'Flutter · Barcode · Supabase'},
+  {id:'hana',name:'Hana',role:'Retail Ops',div:'paivo',identity:'Retailer wears 5 hats. Paivo removes 4.',mission:'Retail profile: SKU inventory, POS, suppliers.',rules:['Barcode scan is primary','Stock updates real-time','VAT configurable per country'],deliverables:['Retail Flutter screens','FastAPI module','ESC/POS guide'],stack:'Flutter · FastAPI · Supabase'},
+  {id:'sana',name:'Sana',role:'Sprint Prioritizer',div:'paivo',identity:'Ruthless RICE scoring. Protects engineering time.',mission:'Prioritize Paivo backlog, plan sprints.',rules:['Every feature needs user story','RICE before sprint','No dev without acceptance criteria'],deliverables:['Prioritized backlog','Sprint plan','Roadmap'],stack:'GitHub Projects · Notion · RICE'},
+  {id:'aya',name:'Aya',role:'Feedback Synth.',div:'paivo',identity:'Translates WhatsApp complaints into requirements.',mission:'Synthesize all Paivo user feedback.',rules:['Never dismiss as edge case','Quote real users','Tag: industry, feature, sentiment'],deliverables:['Weekly digest','Monthly insight report','Interview transcripts'],stack:'Notion · App Reviews · WhatsApp'},
+  {id:'khalid',name:'Khalid',role:'Nudge Engine',div:'paivo',identity:'Read Nir Eyal and B.J. Fogg. Designs sticky moments.',mission:'Design nudges increasing Paivo activation.',rules:['Nudges create genuine value','Max 1 push/day','A/B test every nudge first'],deliverables:['Nudge sequence map','Notification copy','A/B test plan'],stack:'Push Notifications · WhatsApp · A/B'},
+  {id:'nadia',name:'Nadia',role:'LinkedIn Creator',div:'marketing',identity:'Writes in Wassim\'s voice. Direct, late-night energy.',mission:'Grow Wassim\'s LinkedIn and Krono brand.',rules:['Wassim\'s voice always','Hook in first 2 lines','Specific > vague'],deliverables:['3 posts/week','Monthly calendar','Profile optimization'],stack:'LinkedIn · Canva · Wassim\'s Voice'},
+  {id:'ziad',name:'Ziad',role:'Growth Hacker',div:'marketing',identity:'Every initiative is a hypothesis with a measurable outcome.',mission:'Drive user acquisition for Paivo and Krono.',rules:['Every experiment has hypothesis','2-week minimum run','WhatsApp > email in MENA'],deliverables:['90-day experiment backlog','Referral program','n8n automation'],stack:'n8n · Analytics · A/B Testing'},
+  {id:'leila',name:'Leila',role:'Content Creator',div:'marketing',identity:'Writes Arabic and English. Knows which converts better.',mission:'Create content that builds trust and converts.',rules:['Case studies need real numbers','Arabic culturally adapted','One clear CTA per piece'],deliverables:['Blog articles (SEO)','Landing pages (AR+EN)','Email sequences'],stack:'Notion · Arabic & English · SEO'},
+  {id:'faris',name:'Faris',role:'SEO Specialist',div:'marketing',identity:'Thinks long-term. Builds foundations that compound.',mission:'Drive organic traffic to Paivo and Krono.',rules:['Research Arabic AND English','Technical audit first','Core Web Vitals must pass'],deliverables:['SEO audit','Keyword research (AR+EN)','Monthly tracker'],stack:'Ahrefs · Search Console · SurferSEO'},
+  {id:'jad',name:'Jad',role:'Analytics Reporter',div:'support',identity:'Numbers into stories, stories into decisions.',mission:'Build analytics for AccuSentry, Paivo, and Krono.',rules:['Every metric has a definition','Trend > snapshot','Automate reports that repeat'],deliverables:['Python reporting scripts','Metabase dashboards','Weekly 5-metric summary'],stack:'Python · Metabase · TimescaleDB'},
+  {id:'rima',name:'Rima',role:'Finance Tracker',div:'support',identity:'Keeps Wassim\'s money organized. No year-end surprises.',mission:'Track and report finances for Krono and Paivo.',rules:['Separate Krono and Paivo books','Stripe reconciled weekly','VAT 15% KSA tracked'],deliverables:['Monthly P&L','13-week cash flow','Invoice tracker'],stack:'Excel · Stripe · Google Sheets'},
+  {id:'dina',name:'Dina',role:'Support Responder',div:'support',identity:'First face of Paivo. Patient. Arabic & English fluent.',mission:'Resolve Paivo user issues quickly.',rules:['First response < 2 hours','Arabic users get Arabic','Every bug gets ticket + 24h update'],deliverables:['WhatsApp templates (AR+EN)','Knowledge base','Bug report template'],stack:'WhatsApp Business · Notion · Linear'},
+  {id:'yasmine',name:'Yasmine',role:'UI Designer',div:'design',identity:'Good design is invisible. Defends the system fiercely.',mission:'Design Paivo, Krono, and Wassim\'s brand.',rules:['Design tokens first','5 states per component','Dark mode simultaneously'],deliverables:['Figma library','Screen designs','Design tokens JSON'],stack:'Figma · Material 3 · TailwindCSS'},
+  {id:'nourb',name:'Nour B.',role:'Brand Guardian',div:'design',identity:'Keeper of Krono\'s identity. Wrong font = physical pain.',mission:'Protect Krono, Paivo, and Wassim\'s brand.',rules:['No unauthorized brand variations','Annual brand audit','Krono: machine + art'],deliverables:['Brand guidelines PDF','Logo files','Template library'],stack:'Figma · Brand Guidelines · Canva'},
+  {id:'mira',name:'Mira',role:'Whimsy Injector',div:'design',identity:'Adds moments that make users smile. Delight with purpose.',mission:'Add moments of delight to Paivo.',rules:['Every element serves a purpose','Don\'t animate everything','prefers-reduced-motion always'],deliverables:['Lottie animations','Flutter animation code','Empty state illustrations'],stack:'Lottie · CSS Animations · Flutter'},
+  {id:'elie',name:'Elie',role:'Outbound Strategist',div:'sales',identity:'10 great messages beats 100 generic ones.',mission:'Build Krono\'s client pipeline through smart outreach.',rules:['Research before writing anything','First touch references something specific','Never pitch in first message'],deliverables:['Prospect list with notes','Message templates','n8n automation'],stack:'LinkedIn SalesNav · Apollo · n8n'},
+  {id:'ramid',name:'Rami D.',role:'Deal Strategist',div:'sales',identity:'"Why will we lose this?" — his first question.',mission:'Qualify and strategize every active Krono deal.',rules:['Every deal needs a champion','Never forecast >50% without next step','30 days stuck = review'],deliverables:['MEDDPICC scorecard','Competitive battle card','Win/loss analysis'],stack:'Notion · CRM · MEDDPICC'},
+  {id:'carla',name:'Carla',role:'Proposal Strategist',div:'sales',identity:'Writes proposals that close. Opens with pain.',mission:'Write winning proposals and SOWs for Krono.',rules:['Open with their problem','Pricing after value','10+ pages lose more'],deliverables:['Branded proposal PDF','SOW templates','Pricing calculator'],stack:'Notion · Google Docs · Canva'},
+  {id:'director',name:'Director',role:'Orchestrator',div:'specialized',identity:'Sees the whole board. No gaps, no duplicated work.',mission:'Coordinate multi-agent workflows for complex projects.',rules:['No duplicated work','Dependencies resolved before blocking','One status view for Wassim'],deliverables:['Project decomposition map','Agent assignment matrix','Weekly status summary'],stack:'Claude · n8n · Notion · All Divisions'},
+  {id:'iman',name:'Iman',role:'Cultural Intel.',div:'specialized',identity:'Grew up between Lebanon and Saudi Arabia.',mission:'Ensure Paivo feels culturally native in MENA.',rules:['RTL from day 1','Mada + STC Pay = credit card','Hijri calendar option'],deliverables:['RTL design audit','Flutter .arb localization','Cultural adaptation checklist'],stack:'Arabic UX · RTL Flutter · Localization'},
+];
+
+// ════════════════════════════════════════════════════════
+//  OFFICE WORLD
+// ════════════════════════════════════════════════════════
+const FW = 2800, FH = 1800;
+const CW_DRAW = CHAR_W * CHAR_SCALE, CH_DRAW = CHAR_H * CHAR_SCALE;
+
+const ZONES = [
+  {id:'engineering', label:'Engineering',  x:80,  y:70,  w:600, h:480, color:'#4a90ff'},
+  {id:'accusentry',  label:'AccuSentry',   x:760, y:70,  w:600, h:480, color:'#ff8c3a'},
+  {id:'paivo',       label:'Paivo',        x:80,  y:630, w:600, h:520, color:'#2ee8a5'},
+  {id:'marketing',   label:'Marketing',    x:760, y:630, w:440, h:240, color:'#ff5090'},
+  {id:'support',     label:'Support',      x:760, y:950, w:440, h:200, color:'#78e040'},
+  {id:'design',      label:'Design',       x:1480,y:70,  w:440, h:480, color:'#b060ff'},
+  {id:'sales',       label:'Sales',        x:1480,y:630, w:440, h:240, color:'#ff4444'},
+  {id:'specialized', label:'Specialized',  x:1480,y:950, w:440, h:200, color:'#60a0ff'},
+  {id:'meeting',     label:'Meeting Room', x:2020,y:70,  w:600, h:1080,color:'#c8a84b'},
+];
+
+// ════════════════════════════════════════════════════════
+//  DESK SPOTS — one per NPC, exactly aligned with desk art
+//  Desk art: 150×84 px, monitor centered.
+//  Character stands at: deskX + 75 (center), deskY + 84 + CH_DRAW/2 (just behind front edge)
+// ════════════════════════════════════════════════════════
+const DESK_SPOTS = [];   // filled after ZONES defined
+function buildDeskSpots() {
+  ZONES.slice(0, 8).forEach(z => {
+    // How many columns and rows fit in this zone?
+    const DESK_W = 150, DESK_H = 84, PAD_X = 55, PAD_Y = 50, GAP_X = 185, GAP_Y = 170;
+    const maxCols = Math.floor((z.w - PAD_X * 2 + GAP_X - DESK_W) / GAP_X) || 1;
+    const maxRows = Math.floor((z.h - PAD_Y * 2 + GAP_Y - DESK_H) / GAP_Y) || 1;
+    const cols = Math.min(maxCols, 4);
+    const rows = Math.min(maxRows, 2);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const deskX = z.x + PAD_X + c * GAP_X;
+        const deskY = z.y + PAD_Y + 44 + r * GAP_Y;  // +44 clears zone label chip
+        if (deskX + DESK_W > z.x + z.w - 10) continue;
+        if (deskY + DESK_H > z.y + z.h - 10) continue;
+        DESK_SPOTS.push({
+          x: deskX,
+          y: deskY,
+          // Character stands centered on desk, feet at front edge + 4px
+          charX: deskX + DESK_W / 2,
+          charY: deskY + DESK_H + 4,
+          div: z.id,
+          color: z.color,
+        });
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  AGENT BEHAVIOR CLASS
+// ════════════════════════════════════════════════════════
+const CHAT_LINES = {
+  engineering:['Pushed to staging','Tests passing ✓','PR needs review','This scales better','Deploy in 5 min','LGTM, merging','New issue opened','Refactoring this'],
+  accusentry:['PPM target hit!','Camera 3 tuned','Defect rate -12%','Shark line smooth','Lens cleaned ✓','Settings backed up','Reject rate ok','Alignment done'],
+  paivo:['New gym signed!','Bug in checkout','Sprint shipped 🚀','RICE score done','User feedback in','Retention is up','Feature live ✓','MRR growing'],
+  marketing:['Post got 3k likes','Blog draft ready','LinkedIn CTR +40%','SEO rank improved','Campaign live AR','Content cal done','Audience +200','Experiment #12'],
+  support:['MRR up this month','Invoice sent','Ticket resolved ✓','Analytics ready','Uptime: 99.9%','Cash flow +','Report delivered','VAT filed ✓'],
+  design:['System updated','New component','Brand audit done','Dark mode ✓','Animation ok','Figma shared','Tokens exported','Feedback done'],
+  sales:['Proposal sent','Deal at 75% ♟','New lead in','Call went well','Pipeline solid','Outreach done','Win analyzed','Follow-up set'],
+  specialized:['Agents synced','PDPL compliant','RTL reviewed','Workflow auto','Tasks unblocked','Report to Wassim','Dependencies clear','MENA ready'],
+};
+
+class NPC {
+  constructor(agentData, charX, charY) {
+    this.a = agentData;
+    this.ap = getAppearance(agentData);
+    this.dx = charX; this.dy = charY; // home desk position (character feet)
+    this.x = charX; this.y = charY;
+    this.tx = charX; this.ty = charY; // walk target
+    this.state = 'typing';
+    this.tick = Math.random() * 200;
+    this.stateCD = 120 + Math.random() * 300;
+    this.chatText = '';
+    this.chatCD = 200 + Math.random() * 300;
+    this.chatTimer = 0;
+    this.spd = 1.2 + Math.random() * 0.6;
+    this.zone = ZONES.find(z => z.id === agentData.div);
+    this.inMeeting = false;
+    this.meetSeat = null;
+  }
+
+  update(dt, all) {
+    this.tick += dt * 0.06;
+    this.stateCD -= dt;
+    this.chatCD -= dt;
+    this.chatTimer = Math.max(0, this.chatTimer - dt);
+
+    // If in meeting and at seat, just idle/talk there
+    if (this.inMeeting && this.meetSeat) {
+      const distToSeat = Math.hypot(this.x - this.meetSeat.x, this.y - this.meetSeat.y);
+      if (distToSeat > 8) {
+        this.state = 'walking';
+        this.tx = this.meetSeat.x; this.ty = this.meetSeat.y;
+        const ddx = this.tx - this.x, ddy = this.ty - this.y;
+        const dist = Math.sqrt(ddx*ddx+ddy*ddy);
+        this.x += (ddx/dist)*this.spd*dt*0.1;
+        this.y += (ddy/dist)*this.spd*dt*0.1;
+      } else {
+        this.x = this.meetSeat.x; this.y = this.meetSeat.y;
+        this.state = Math.random() < 0.3 ? 'talking' : 'idle';
+        this.stateCD = 120 + Math.random() * 180;
+      }
+      // Meeting chat
+      if (this.chatCD <= 0 && Math.random() < 0.012) {
+        const lines = CHAT_LINES[this.a.div] || ['...'];
+        this.chatText = lines[(Math.random() * lines.length) | 0];
+        this.chatTimer = 360;
+        this.chatCD = 500 + Math.random() * 400;
+      }
+      if (this.chatTimer <= 0) this.chatText = '';
+      return;
+    }
+
+    // Occasionally say something — stays visible ~6 seconds
+    if (this.chatCD <= 0 && (this.state === 'typing' || this.state === 'talking') && Math.random() < 0.02) {
+      const lines = CHAT_LINES[this.a.div] || ['...'];
+      this.chatText = lines[(Math.random() * lines.length) | 0];
+      this.chatTimer = 360 + Math.random() * 120;  // 6-8 seconds
+      this.chatCD = 450 + Math.random() * 500;
+    }
+
+    // Walk toward target
+    if (this.state === 'walking') {
+      const ddx = this.tx - this.x, ddy = this.ty - this.y;
+      const dist = Math.sqrt(ddx * ddx + ddy * ddy);
+      if (dist < 3) {
+        this.x = this.tx; this.y = this.ty;
+        this.stateCD = 0; // trigger state change
+      } else {
+        this.x += (ddx / dist) * this.spd * dt * 0.1;
+        this.y += (ddy / dist) * this.spd * dt * 0.1;
+      }
+    }
+
+    // State machine
+    if (this.stateCD <= 0) {
+      const r = Math.random();
+      if (r < 0.5) { // back to desk
+        this.state = 'typing';
+        this.tx = this.dx; this.ty = this.dy;
+        if (Math.hypot(this.x - this.dx, this.y - this.dy) > 10) this.state = 'walking';
+        else { this.x = this.dx; this.y = this.dy; }
+        this.stateCD = 350 + Math.random() * 500;
+      } else if (r < 0.70) { // idle
+        this.state = 'idle';
+        this.stateCD = 100 + Math.random() * 180;
+      } else if (r < 0.88) { // walk in zone
+        if (this.zone) {
+          this.state = 'walking';
+          this.tx = this.zone.x + 50 + Math.random() * (this.zone.w - 100);
+          this.ty = this.zone.y + 60 + Math.random() * (this.zone.h - 120);
+          this.stateCD = 200;
+        } else { this.state = 'idle'; this.stateCD = 100; }
+      } else { // talk to neighbor
+        const same = all.filter(n => n !== this && n.a.div === this.a.div);
+        if (same.length > 0) {
+          const partner = same[(Math.random() * same.length) | 0];
+          this.state = 'walking';
+          this.tx = partner.x + 30; this.ty = partner.y;
+          this.stateCD = 60;
+          setTimeout(() => {
+            if (this.state === 'walking' || this.state === 'idle') {
+              this.state = 'talking';
+              this.stateCD = 180 + Math.random() * 180;
+              if (partner.state !== 'typing') partner.state = 'talking';
+            }
+          }, 600);
+        } else { this.state = 'idle'; this.stateCD = 120; }
+      }
+    }
+
+    if (this.chatTimer <= 0) this.chatText = '';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  OFFICE RENDERING
+// ════════════════════════════════════════════════════════
+function renderOffice(ctx, camX, camY, W, H) {
+  // Floor
+  ctx.fillStyle = '#c8b080';
+  ctx.fillRect(0, 0, W, H);
+
+  const pH = 40, pW = 160;
+  for (let y = (-camY % pH) - pH; y < H + pH; y += pH) {
+    const row = Math.floor((y + camY) / pH);
+    ctx.fillStyle = row % 2 === 0 ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.02)';
+    ctx.fillRect(0, y, W, pH);
+    ctx.fillStyle = 'rgba(150,110,55,.18)';
+    ctx.fillRect(0, y, W, 1);
+    for (let x = (-camX % pW) - pW + (row % 2) * 80; x < W + pW; x += pW) {
+      ctx.fillStyle = 'rgba(150,110,55,.1)';
+      ctx.fillRect(x, y, 1, pH);
+    }
+  }
+
+  // Ambient ceiling light pools
+  for (let lx = 300; lx < FW; lx += 400) {
+    for (let ly = 250; ly < FH; ly += 380) {
+      const px = lx - camX, py = ly - camY;
+      if (px < -300 || px > W + 300 || py < -300 || py > H + 300) continue;
+      const g = ctx.createRadialGradient(px, py, 20, px, py, 180);
+      g.addColorStop(0, 'rgba(255,240,190,.1)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, 180, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  // Zones
+  ZONES.forEach(z => {
+    const zx = z.x - camX, zy = z.y - camY;
+    if (zx + z.w < -10 || zy + z.h < -10 || zx > W + 10 || zy > H + 10) return;
+    const col = z.color;
+
+    if (z.id === 'meeting') {
+      ctx.fillStyle = '#14112a';
+      rr(ctx, zx, zy, z.w, z.h, 16); ctx.fill();
+      ctx.fillStyle = 'rgba(20,16,40,.4)';
+      for (let sy = 0; sy < z.h; sy += 16) ctx.fillRect(zx, zy + sy, z.w, 8);
+    } else {
+      ctx.fillStyle = col + '0c';
+      rr(ctx, zx, zy, z.w, z.h, 16); ctx.fill();
+    }
+
+    // Glass wall top
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(zx, zy, z.w, 1.5);
+    ctx.fillStyle = col + '3a'; ctx.fillRect(zx, zy, z.w, 4);
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(zx, zy, 1.5, z.h);
+    ctx.fillStyle = col + '28'; ctx.fillRect(zx, zy, 4, z.h);
+    ctx.fillStyle = 'rgba(0,0,0,.1)'; ctx.fillRect(zx, zy + z.h - 2, z.w, 2); ctx.fillRect(zx + z.w - 2, zy, 2, z.h);
+
+    // Corner brackets
+    ctx.strokeStyle = col + '90'; ctx.lineWidth = 1.8;
+    const bl = 18;
+    [[zx,zy,1,1],[zx+z.w,zy,-1,1],[zx,zy+z.h,1,-1],[zx+z.w,zy+z.h,-1,-1]].forEach(([px,py,dx,dy]) => {
+      ctx.beginPath(); ctx.moveTo(px+dx*bl, py); ctx.lineTo(px, py); ctx.lineTo(px, py+dy*bl); ctx.stroke();
+    });
+
+    // Zone label chip
+    ctx.fillStyle = 'rgba(5,6,10,.82)'; rr(ctx, zx+14, zy+13, 122, 19, 5); ctx.fill();
+    ctx.fillStyle = col + '48'; rr(ctx, zx+14, zy+13, 122, 19, 5); ctx.fill();
+    ctx.fillStyle = col; ctx.fillRect(zx+14, zy+13, 3, 19);
+    ctx.fillStyle = 'rgba(255,255,255,.88)';
+    ctx.font = 'bold 9px Outfit'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.fillText(z.label.toUpperCase(), zx + 22, zy + 22.5);
+
+    // Light bar
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(zx + z.w/2 - 48, zy, 96, 3);
+    for (let li = -28; li <= 28; li += 14) {
+      ctx.fillStyle = 'rgba(255,248,210,.8)';
+      ctx.beginPath(); ctx.arc(zx + z.w/2 + li, zy + 1.5, 3, 0, Math.PI*2); ctx.fill();
+    }
+  });
+
+  // Desks — drawn at exact DESK_SPOTS positions
+  DESK_SPOTS.forEach(ds => {
+    drawDesk(ctx, ds.x - camX, ds.y - camY, ds.color, W, H);
+  });
+
+  // Meeting table
+  drawMeetingTable(ctx, camX, camY);
+
+  // Plants
+  [
+    [110,55],[FW-110,55],[110,FH-110],[FW-110,FH-110],
+    [700,360],[700,730],[1450,360],[1450,730],[1450,1160],
+    [760,590],[1380,590],[760,1190],[1380,1190],
+    [2000,300],[2000,700],[2000,1100],
+    [2620,300],[2620,700],[2620,1100],
+  ].forEach(([px,py]) => drawPlant(ctx, px - camX, py - camY, W, H));
+
+  // Sofas
+  [[240,1310],[240,1390],[1000,1310]].forEach(([sx,sy]) => drawSofa(ctx, sx-camX, sy-camY, W, H));
+}
+
+function rr(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+function drawDesk(ctx, dx, dy, col, W, H) {
+  if (dx + 150 < -10 || dy + 84 < -10 || dx > W + 10 || dy > H + 10) return;
+  ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.fillRect(dx+4,dy+5,150,83);
+  const sg = ctx.createLinearGradient(dx,dy,dx,dy+84);
+  sg.addColorStop(0,'#eddfc0'); sg.addColorStop(1,'#d8c898');
+  ctx.fillStyle = sg; rr(ctx,dx,dy,150,84,8); ctx.fill();
+  ctx.strokeStyle = 'rgba(160,120,55,.14)'; ctx.lineWidth = .6;
+  for (let gx = dx+10; gx < dx+148; gx += 18) { ctx.beginPath(); ctx.moveTo(gx,dy+6); ctx.lineTo(gx,dy+78); ctx.stroke(); }
+  ctx.fillStyle = '#c8a870'; ctx.fillRect(dx,dy+78,150,6); rr(ctx,dx,dy+78,150,6,4); ctx.fill();
+  // Monitor
+  const mw=78,mh=50,mx=dx+36,my=dy+7;
+  ctx.fillStyle='#181a26'; rr(ctx,mx,my,mw,mh,5); ctx.fill();
+  ctx.fillStyle='#0c0e18'; ctx.fillRect(mx+3,my+3,mw-6,mh-7);
+  const scg=ctx.createRadialGradient(mx+mw/2,my+mh/2,3,mx+mw/2,my+mh/2,mw/2);
+  scg.addColorStop(0,col+'28'); scg.addColorStop(1,col+'06');
+  ctx.fillStyle=scg; ctx.fillRect(mx+3,my+3,mw-6,mh-7);
+  ctx.fillStyle=col+'55'; ctx.fillRect(mx+6,my+8,mw*.45,2);
+  ctx.fillStyle='rgba(255,255,255,.15)'; ctx.fillRect(mx+6,my+14,mw*.7,1.5); ctx.fillRect(mx+6,my+19,mw*.55,1.5);
+  ctx.fillStyle='#181a26'; ctx.fillRect(mx+mw/2-4,my+mh,8,7); ctx.fillRect(mx+mw/2-12,my+mh+6,24,4);
+  ctx.fillStyle='#22253a'; rr(ctx,dx+30,dy+62,86,13,4); ctx.fill();
+  for (let r=0;r<2;r++) for (let k=0;k<9;k++) { ctx.fillStyle='rgba(255,255,255,.07)'; ctx.fillRect(dx+33+k*8,dy+64+r*5,6,2.5); }
+  ctx.fillStyle='#22253a'; ctx.beginPath(); ctx.ellipse(dx+133,dy+70,5,8,0,0,Math.PI*2); ctx.fill();
+}
+
+function drawMeetingTable(ctx, camX, camY) {
+  const z = ZONES.find(z => z.id === 'meeting');
+  const tx = z.x+70-camX, ty = z.y+130-camY, tw=480, th=248;
+  ctx.fillStyle='rgba(0,0,0,.32)'; rr(ctx,tx+6,ty+10,tw,th,20); ctx.fill();
+  const tg=ctx.createLinearGradient(tx,ty,tx,ty+th);
+  tg.addColorStop(0,'#241e3c'); tg.addColorStop(1,'#1a162e');
+  ctx.fillStyle=tg; rr(ctx,tx,ty,tw,th,20); ctx.fill();
+  ctx.strokeStyle='rgba(200,168,75,.3)'; ctx.lineWidth=1.5; rr(ctx,tx,ty,tw,th,20); ctx.stroke();
+  ctx.strokeStyle='rgba(200,168,75,.1)'; ctx.lineWidth=1; rr(ctx,tx+12,ty+12,tw-24,th-24,12); ctx.stroke();
+  const lx=tx+tw/2, ly=ty+th/2;
+  ctx.fillStyle='rgba(200,168,75,.07)'; ctx.beginPath(); ctx.arc(lx,ly,44,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(200,168,75,.2)'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(lx,ly,44,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle='rgba(200,168,75,.25)';
+  ctx.beginPath();
+  for(let i=0;i<6;i++){const a=Math.PI/3*i-Math.PI/6;if(!i)ctx.moveTo(lx+18*Math.cos(a),ly+18*Math.sin(a));else ctx.lineTo(lx+18*Math.cos(a),ly+18*Math.sin(a));}
+  ctx.closePath(); ctx.fill();
+  // Chairs
+  [[tx+50,ty-24,0],[tx+145,ty-24,0],[tx+240,ty-24,0],[tx+335,ty-24,0],[tx+425,ty-24,0],
+   [tx+50,ty+th+4,Math.PI],[tx+145,ty+th+4,Math.PI],[tx+240,ty+th+4,Math.PI],[tx+335,ty+th+4,Math.PI],[tx+425,ty+th+4,Math.PI],
+   [tx-24,ty+55,-Math.PI/2],[tx-24,ty+150,-Math.PI/2],
+   [tx+tw+4,ty+55,Math.PI/2],[tx+tw+4,ty+150,Math.PI/2]].forEach(([cx2,cy2,ang])=>{
+    ctx.save();ctx.translate(cx2+14,cy2+12);ctx.rotate(ang);ctx.translate(-14,-12);
+    ctx.fillStyle='#221c36';rr(ctx,0,6,28,18,5);ctx.fill();
+    ctx.fillStyle='#1c162e';rr(ctx,2,0,24,9,4);ctx.fill();
+    ctx.restore();
+  });
+  // Laptops
+  [[tx+78,ty+38],[tx+195,ty+38],[tx+316,ty+38],[tx+412,ty+38],
+   [tx+78,ty+162],[tx+195,ty+162],[tx+316,ty+162],[tx+412,ty+162]].forEach(([lx3,ly3])=>{
+    ctx.fillStyle='#1e1c2a';ctx.fillRect(lx3,ly3+11,40,24);
+    ctx.fillStyle='#13111e';ctx.fillRect(lx3,ly3,40,14);
+    const sg2=ctx.createLinearGradient(lx3,ly3,lx3+40,ly3+14);
+    sg2.addColorStop(0,'rgba(74,144,255,.22)');sg2.addColorStop(1,'rgba(176,96,255,.16)');
+    ctx.fillStyle=sg2;ctx.fillRect(lx3+2,ly3+2,36,10);
+  });
+}
+
+function drawPlant(ctx, px, py, W, H) {
+  if (px < -50 || px > W + 50 || py < -50 || py > H + 50) return;
+  const s = 32;
+  const pg=ctx.createLinearGradient(px-s*.28,py-s*.4,px+s*.28,py);
+  pg.addColorStop(0,'#6a2808');pg.addColorStop(1,'#481804');
+  ctx.fillStyle=pg; rr(ctx,px-s*.3,py-s*.4,s*.6,s*.4,s*.07); ctx.fill();
+  ctx.fillStyle='#260e04';ctx.fillRect(px-s*.34,py-s*.44,s*.68,s*.1);
+  ctx.fillStyle='#0c2606';ctx.beginPath();ctx.arc(px,py-s*.5,s*.34,0,Math.PI*2);ctx.fill();
+  [['#185408',.3,.38],['#206010',-.28,.44],['#287a0e',.0,.7],['#1a600a',-.22,.56],['#228c12',.24,.62]].forEach(([c,ox,oy])=>{
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(px+ox*s,py-oy*s,s*.24,s*.12,Math.atan2(oy,-ox)*.5,0,Math.PI*2);ctx.fill();
+  });
+}
+
+function drawSofa(ctx, sx, sy, W, H) {
+  if (sx+190<-10||sy+76<-10||sx>W+10||sy>H+10) return;
+  ctx.fillStyle='rgba(0,0,0,.16)';rr(ctx,sx+4,sy+7,190,76,11);ctx.fill();
+  const sfg=ctx.createLinearGradient(sx,sy,sx,sy+76);
+  sfg.addColorStop(0,'#38284e');sfg.addColorStop(1,'#28183a');
+  ctx.fillStyle=sfg;rr(ctx,sx,sy,190,76,11);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=.8;rr(ctx,sx,sy,190,76,11);ctx.stroke();
+  [[sx+9,sy+7,84,52],[sx+97,sy+7,84,52]].forEach(([cx2,cy2,cw,ch])=>{
+    ctx.fillStyle='#42305a';rr(ctx,cx2,cy2,cw,ch,7);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.05)';rr(ctx,cx2,cy2,cw,ch,7);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.arc(cx2+cw/2,cy2+ch/2,3,0,Math.PI*2);ctx.fill();
+  });
+  ctx.fillStyle='#26183a';ctx.fillRect(sx,sy+7,13,69);ctx.fillRect(sx+177,sy+7,13,69);
+  ctx.fillStyle='rgba(200,168,75,.36)';
+  ctx.beginPath();ctx.ellipse(sx+22,sy+14,9,13,-.2,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(sx+168,sy+14,9,13,.2,0,Math.PI*2);ctx.fill();
+}
+
+// ════════════════════════════════════════════════════════
+//  RENDER CHARACTER ON MAIN CANVAS
+// ════════════════════════════════════════════════════════
+function renderChar(ctx, npc, camX, camY) {
+  const sx = npc.x - camX - CW_DRAW / 2;
+  const sy = npc.y - camY - CH_DRAW;
+  if (sx + CW_DRAW < -20 || sy + CH_DRAW < -20 || sx > W + 20 || sy > H + 20) return;
+
+  const d = DIVS[npc.a.div];
+  const inM = meeting.find(m => m.id === npc.a.id);
+  const isH = hovA?.id === npc.a.id;
+
+  // Shadow ellipse
+  ctx.fillStyle = 'rgba(0,0,0,.22)';
+  ctx.beginPath(); ctx.ellipse(sx + CW_DRAW/2, sy + CH_DRAW + 2, CW_DRAW*.38, 5, 0, 0, Math.PI*2); ctx.fill();
+
+  // Glow
+  if (inM || isH) {
+    const col = inM ? 'rgba(200,168,75,.22)' : d.color + '22';
+    const g = ctx.createRadialGradient(sx+CW_DRAW/2, sy+CH_DRAW/2, 6, sx+CW_DRAW/2, sy+CH_DRAW/2, 52);
+    g.addColorStop(0, col); g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx+CW_DRAW/2, sy+CH_DRAW/2, 52, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Character sprite from cache
+  const frame = getCharFrame(npc.a, npc.state, npc.tick);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(frame, sx, sy, CW_DRAW, CH_DRAW);
+
+  // Nametag
+  const tW = 72, tH = 18;
+  const tX = sx + CW_DRAW/2 - tW/2, tY = sy - tH - 4;
+  ctx.fillStyle = 'rgba(4,5,10,.92)'; rr(ctx, tX, tY, tW, tH, 5); ctx.fill();
+  ctx.strokeStyle = isH ? d.color + '88' : 'rgba(255,255,255,.07)';
+  ctx.lineWidth = .8; rr(ctx, tX, tY, tW, tH, 5); ctx.stroke();
+  if (isH) { ctx.fillStyle = d.color; ctx.fillRect(tX, tY, 2, tH); }
+  ctx.fillStyle = isH ? 'rgba(255,255,255,.94)' : 'rgba(236,234,248,.72)';
+  ctx.font = `${isH?'600':'500'} 9px Outfit`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(npc.a.name, sx + CW_DRAW/2, tY + tH/2);
+
+  // State dot
+  const dotCol = {typing: d.color, walking:'#60a0ff', talking:'#ffb060', idle:'#666'}[npc.state] || '#666';
+  ctx.fillStyle = dotCol;
+  ctx.beginPath(); ctx.arc(tX + tW - 5, tY + 5, 2.5, 0, Math.PI*2); ctx.fill();
+
+  if (inM) {
+    ctx.fillStyle = '#c8a84b'; ctx.font = '9px serif';
+    ctx.fillText('★', sx + CW_DRAW - 2, sy + 3);
+  }
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}
+
+function renderPlayer(ctx, camX, camY) {
+  const sx = plX - camX - CW_DRAW/2, sy = plY - camY - CH_DRAW;
+  ctx.fillStyle = 'rgba(0,0,0,.2)';
+  ctx.beginPath(); ctx.ellipse(sx+CW_DRAW/2, sy+CH_DRAW+2, CW_DRAW*.4, 6, 0, 0, Math.PI*2); ctx.fill();
+  const pg = ctx.createRadialGradient(sx+CW_DRAW/2, sy+CH_DRAW/2, 8, sx+CW_DRAW/2, sy+CH_DRAW/2, 62);
+  pg.addColorStop(0,'rgba(200,168,75,.22)'); pg.addColorStop(1,'transparent');
+  ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(sx+CW_DRAW/2, sy+CH_DRAW/2, 62, 0, Math.PI*2); ctx.fill();
+
+  // Draw player using playerAp directly
+  const frame = (() => {
+    const bucket = (plTick / 3) | 0;
+    const key = '__player__' + plState + (bucket % 30);
+    if (charFrameCache.has(key)) return charFrameCache.get(key);
+    const oc = document.createElement('canvas');
+    oc.width = CW_DRAW; oc.height = CH_DRAW;
+    const octx = oc.getContext('2d');
+    octx.imageSmoothingEnabled = false;
+    octx.scale(CHAR_SCALE, CHAR_SCALE);
+    drawChar(octx, playerAp, plState, bucket * 3);
+    if (charFrameCache.size > 400) charFrameCache.delete(charFrameCache.keys().next().value);
+    charFrameCache.set(key, oc);
+    return oc;
+  })();
+
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(frame, sx, sy, CW_DRAW, CH_DRAW);
+
+  // Gold crown/star above to make player special
+  ctx.fillStyle = '#e8c96a';
+  ctx.font = 'bold 13px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('★', sx + CW_DRAW/2, sy - 2);
+
+  // Player tag
+  const tW=68,tH=24,tX=sx+CW_DRAW/2-tW/2,tY=sy-tH-8;
+  ctx.fillStyle='rgba(4,5,10,.94)'; rr(ctx,tX,tY,tW,tH,7); ctx.fill();
+  ctx.strokeStyle='rgba(200,168,75,.6)'; ctx.lineWidth=1.5; rr(ctx,tX,tY,tW,tH,7); ctx.stroke();
+  ctx.fillStyle='rgba(200,168,75,.95)'; ctx.font='bold 8px Outfit'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('YOU', sx+CW_DRAW/2, tY+9);
+  ctx.fillStyle='rgba(236,234,248,.7)'; ctx.font='500 8px Outfit';
+  ctx.fillText(player.name, sx+CW_DRAW/2, tY+19);
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+}
+
+// ════════════════════════════════════════════════════════
+//  SPEECH BUBBLES — drawn on canvas, readable, persistent
+// ════════════════════════════════════════════════════════
+function drawBubbles(ctx, camX, camY) {
+  npcs.forEach(npc => {
+    if (!npc.chatText || npc.chatTimer <= 0) return;
+
+    const bx = Math.round(npc.x - camX);
+    const by = Math.round(npc.y - camY - CH_DRAW - 12);
+
+    // Measure text
+    ctx.font = '600 11px Outfit';
+    const lines = wrapText(ctx, npc.chatText, 140);
+    const lineH = 16;
+    const padX = 12, padY = 8;
+    const bw = Math.min(160, ctx.measureText(npc.chatText).width + padX * 2 + 8);
+    const bh = lines.length * lineH + padY * 2;
+    const bl = bx - bw / 2;
+    const bt = by - bh;
+
+    // Fade only in final 60 ticks (1 second at 60fps)
+    const alpha = npc.chatTimer < 60 ? npc.chatTimer / 60 : 1;
+    ctx.globalAlpha = alpha;
+
+    // Bubble background
+    ctx.fillStyle = 'rgba(8,10,20,.97)';
+    rr(ctx, bl, bt, bw, bh, 10);
+    ctx.fill();
+
+    // Bubble border — division color
+    const divCol = DIVS[npc.a.div]?.color || '#fff';
+    ctx.strokeStyle = divCol + 'cc';
+    ctx.lineWidth = 1.5;
+    rr(ctx, bl, bt, bw, bh, 10);
+    ctx.stroke();
+
+    // Left color bar
+    ctx.fillStyle = divCol;
+    ctx.fillRect(bl, bt + 10, 3, bh - 20);
+
+    // Tail pointing down to character
+    ctx.fillStyle = 'rgba(8,10,20,.97)';
+    ctx.beginPath();
+    ctx.moveTo(bx - 5, bt + bh);
+    ctx.lineTo(bx + 5, bt + bh);
+    ctx.lineTo(bx, bt + bh + 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = divCol + 'cc';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bx - 5, bt + bh + 1);
+    ctx.lineTo(bx, bt + bh + 8);
+    ctx.lineTo(bx + 5, bt + bh + 1);
+    ctx.stroke();
+
+    // Text
+    ctx.fillStyle = '#f0eeff';
+    ctx.font = '600 11px Outfit';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    lines.forEach((line, i) => {
+      ctx.fillText(line, bx, bt + padY + lineH * i + lineH / 2);
+    });
+
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+  });
+}
+
+function wrapText(ctx, text, maxW) {
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    const test = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && cur) {
+      lines.push(cur); cur = w;
+    } else { cur = test; }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+// ════════════════════════════════════════════════════════
+//  GAME STATE
+// ════════════════════════════════════════════════════════
+let player = null;
+let canvas, ctx, W, H;
+let camX = 0, camY = 0;
+let plX = FW/2, plY = FH/2;
+let plState = 'idle', plTick = 0;
+let keys = {}, npcs = [], hovA = null, selA = null;
+let meeting = [], activeTab = 'agents', lastT = 0;
+let nearbyNPC = null;
+let talkTarget = null;
+
+// ════════════════════════════════════════════════════════
+//  PLAYER CHARACTER CREATOR
+// ════════════════════════════════════════════════════════
+const SKIN_OPTS  = ['#fde2b4','#f5c48a','#e8a060','#c87838','#9a5820','#6e3810'];
+const HAIR_OPTS  = ['#0d0500','#3d1500','#6b3010','#a05010','#c89020','#e8c860','#888','#4a0808'];
+const SHIRT_OPTS = ['#1e3a6e','#6b21a8','#065f46','#9a1220','#0f5188','#7e22ce','#0f766e','#1e4040','#b45309','#8b2252'];
+const STYLE_OPTS = ['short','fade','curly','bun','long','side'];
+
+let playerAp = {
+  skin: SKIN_OPTS[0], hair: HAIR_OPTS[0], hStyle: 'short',
+  shirt: SHIRT_OPTS[0], pants: '#1e293b',
+  glasses: false, divCol: '#c8a84b',
+};
+
+function buildSplash() {
+  // Skin picker
+  document.getElementById('skinPicker').innerHTML = SKIN_OPTS.map((c,i)=>
+    `<div onclick="playerAp.skin='${c}';markPick('sk',${i});updatePreview()"
+      id="sk${i}" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${i===0?'#fff':'transparent'};transition:all .15s"></div>`
+  ).join('');
+
+  // Hair color picker
+  document.getElementById('hairPicker').innerHTML = HAIR_OPTS.map((c,i)=>
+    `<div onclick="playerAp.hair='${c}';markPick('hc',${i});updatePreview()"
+      id="hc${i}" style="width:22px;height:22px;border-radius:4px;background:${c};cursor:pointer;border:2px solid ${i===0?'#fff':'transparent'};transition:all .15s"></div>`
+  ).join('');
+
+  // Hair style picker
+  document.getElementById('stylePicker').innerHTML = STYLE_OPTS.map((s,i)=>
+    `<button onclick="playerAp.hStyle='${s}';markPick('hs',${i});updatePreview()"
+      id="hs${i}" style="padding:5px 11px;border-radius:8px;font-family:Outfit,sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;background:${i===0?'rgba(255,255,255,.15)':'rgba(255,255,255,.06)'};border:1px solid ${i===0?'rgba(255,255,255,.3)':'rgba(255,255,255,.1)'};color:#eceaf8">${s}</button>`
+  ).join('');
+
+  // Shirt color picker
+  document.getElementById('shirtPicker').innerHTML = SHIRT_OPTS.map((c,i)=>
+    `<div onclick="playerAp.shirt='${c}';markPick('sc',${i});updatePreview()"
+      id="sc${i}" style="width:22px;height:22px;border-radius:4px;background:${c};cursor:pointer;border:2px solid ${i===0?'#fff':'transparent'};transition:all .15s"></div>`
+  ).join('');
+
+  updatePreview();
+}
+
+function markPick(prefix, idx) {
+  const els = document.querySelectorAll(`[id^="${prefix}"]`);
+  els.forEach((el,i) => {
+    const active = i === idx;
+    el.style.borderColor = active ? '#fff' : 'transparent';
+    if (el.tagName === 'BUTTON') {
+      el.style.background = active ? 'rgba(255,255,255,.15)' : 'rgba(255,255,255,.06)';
+      el.style.borderColor = active ? 'rgba(255,255,255,.3)' : 'rgba(255,255,255,.1)';
+    }
+  });
+}
+
+function updatePreview() {
+  const name = document.getElementById('playerName').value.trim();
+  document.getElementById('spBtn').disabled = !name;
+  const oc = document.getElementById('previewCanvas');
+  const octx = oc.getContext('2d');
+  octx.clearRect(0,0,64,96);
+  octx.imageSmoothingEnabled = false;
+  octx.scale(2,2);
+  drawChar(octx, playerAp, 'idle', 60);
+  octx.setTransform(1,0,0,1,0,0);
+}
+
+function go() {
+  const name = document.getElementById('playerName').value.trim();
+  if (!name) return;
+  // Build a pseudo-agent for the player
+  player = { id:'__player__', name, role:'Agency Director', div:'engineering', identity:'', mission:'', rules:[], deliverables:[], stack:'' };
+  playerAp.divCol = '#c8a84b'; // gold for the boss
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  // Player avatar in topbar
+  const oc = document.createElement('canvas');
+  oc.width = 34; oc.height = 34;
+  const octx = oc.getContext('2d');
+  octx.imageSmoothingEnabled = false;
+  const sc = 34 / CHAR_W;
+  octx.scale(sc, sc * (CHAR_W / CHAR_H));
+  drawChar(octx, playerAp, 'idle', 60);
+  document.getElementById('ppAva').appendChild(oc);
+  document.getElementById('ppN').textContent = name;
+  init();
+}
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+function makeSmallCanvas(agent, size) {
+  const oc = document.createElement('canvas');
+  oc.width = oc.height = size;
+  const octx = oc.getContext('2d');
+  octx.imageSmoothingEnabled = false;
+  const sc = size / CHAR_W;
+  octx.scale(sc, sc * (CHAR_W / CHAR_H));
+  drawChar(octx, getAppearance(agent), 'idle', 60);
+  return oc;
+}
+
+function init() {
+  canvas = document.getElementById('gc');
+  ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Build desk spots — guaranteed one desk per agent
+  buildDeskSpots();
+
+  // Assign each agent their own desk slot (expand grid if needed)
+  const byDiv = {};
+  AGENTS.forEach(a => { if (!byDiv[a.div]) byDiv[a.div] = []; byDiv[a.div].push(a); });
+
+  Object.entries(byDiv).forEach(([div, list]) => {
+    const z = ZONES.find(z => z.id === div);
+    if (!z) return;
+    const spots = DESK_SPOTS.filter(ds => ds.div === div);
+
+    list.forEach((a, i) => {
+      // If we have a pre-computed spot, use it; otherwise synthesize a position
+      let charX, charY;
+      if (i < spots.length) {
+        charX = spots[i].charX;
+        charY = spots[i].charY;
+      } else {
+        // Overflow: place extra agents in a row below existing desks
+        const overflowRow = Math.floor(i / 4);
+        const overflowCol = i % 4;
+        charX = z.x + 55 + 150/2 + overflowCol * 185;
+        charY = z.y + 50 + 44 + 84 + 4 + overflowRow * 170 + (Math.ceil(spots.length / 4)) * 170;
+        // Also add a desk for this overflow spot
+        DESK_SPOTS.push({ x: charX - 75, y: charY - 88, charX, charY, div, color: z.color });
+      }
+      npcs.push(new NPC(a, charX, charY));
+    });
+  });
+
+  plX = FW / 2; plY = FH / 2;
+  camX = plX - W / 2; camY = plY - H / 2;
+
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'Escape') {
+      cmod({ target: document.getElementById('amod') });
+      closeMov();
+      closeTalk();
+    }
+    // E = talk to nearby agent
+    if (e.code === 'KeyE' && nearbyNPC && !talkTarget) {
+      openTalk(nearbyNPC);
+    }
+  });
+  window.addEventListener('keyup', e => keys[e.code] = false);
+  canvas.addEventListener('mousemove', onMM);
+  canvas.addEventListener('click', onCK);
+
+  buildPanel();
+  requestAnimationFrame(loop);
+  toast(`Welcome, ${player.name}! Press E near an agent to talk 👋`);
+}
+
+function resize() {
+  const cw = document.getElementById('cw');
+  W = canvas.width = cw.clientWidth;
+  H = canvas.height = cw.clientHeight;
+}
+
+// ════════════════════════════════════════════════════════
+//  MAIN LOOP
+// ════════════════════════════════════════════════════════
+const SPD = 3.5;
+const TALK_RANGE = 80; // pixels in world space
+
+function loop(t) {
+  const dt = Math.min(t - lastT, 33); lastT = t;
+
+  // Player movement
+  let dx = 0, dy = 0;
+  if (keys['KeyW'] || keys['ArrowUp'])    dy = -1;
+  if (keys['KeyS'] || keys['ArrowDown'])  dy = 1;
+  if (keys['KeyA'] || keys['ArrowLeft'])  dx = -1;
+  if (keys['KeyD'] || keys['ArrowRight']) dx = 1;
+  if (dx && dy) { dx *= .707; dy *= .707; }
+  const moving = !!(dx || dy);
+  plX = Math.max(20, Math.min(FW - 20, plX + dx * SPD));
+  plY = Math.max(20, Math.min(FH - 20, plY + dy * SPD));
+  plState = moving ? 'walking' : 'idle';
+  plTick += dt * 0.06;
+
+  // Find nearest NPC in talk range
+  let closestNPC = null, closestD = TALK_RANGE;
+  npcs.forEach(n => {
+    const d = Math.hypot(n.x - plX, n.y - plY);
+    if (d < closestD) { closestD = d; closestNPC = n; }
+  });
+  nearbyNPC = closestNPC;
+
+  // Smooth camera
+  camX += (plX - W/2 - camX) * 0.09;
+  camY += (plY - H/2 - camY) * 0.09;
+  camX = Math.max(0, Math.min(FW - W, camX));
+  camY = Math.max(0, Math.min(FH - H, camY));
+
+  // Update NPCs (frozen while talking to them)
+  npcs.forEach(n => {
+    if (talkTarget && n.a.id === talkTarget.a.id) {
+      n.state = 'talking'; n.tick += dt * 0.06;
+    } else {
+      n.update(dt, npcs);
+    }
+  });
+
+  // Render
+  const ci = Math.round(camX), cj = Math.round(camY);
+  renderOffice(ctx, ci, cj, W, H);
+
+  // Depth sort + render chars
+  const entities = [
+    ...npcs.map(n => ({ y: n.y, draw: () => renderChar(ctx, n, ci, cj) })),
+    { y: plY, draw: () => renderPlayer(ctx, ci, cj) },
+  ];
+  entities.sort((a, b) => a.y - b.y).forEach(e => e.draw());
+
+  // Draw speech bubbles on top
+  drawBubbles(ctx, ci, cj);
+
+  // [E] talk prompt above nearby NPC
+  if (nearbyNPC && !talkTarget) {
+    const nx = nearbyNPC.x - ci;
+    const ny = nearbyNPC.y - cj - CH_DRAW - 40;
+    const divCol = DIVS[nearbyNPC.a.div]?.color || '#fff';
+    ctx.fillStyle = 'rgba(5,6,12,.96)';
+    rr(ctx, nx - 36, ny - 12, 72, 22, 6); ctx.fill();
+    ctx.strokeStyle = divCol; ctx.lineWidth = 1.5;
+    rr(ctx, nx - 36, ny - 12, 72, 22, 6); ctx.stroke();
+    ctx.fillStyle = divCol;
+    ctx.font = 'bold 10px Outfit'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('[E] Talk', nx, ny - 1);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
+
+  requestAnimationFrame(loop);
+}
+
+// ════════════════════════════════════════════════════════
+//  MOUSE
+// ════════════════════════════════════════════════════════
+function onMM(e) {
+  const r = canvas.getBoundingClientRect();
+  const sx = (e.clientX - r.left) * (canvas.width / r.width);
+  const sy = (e.clientY - r.top) * (canvas.height / r.height);
+  const wx = sx + camX, wy = sy + camY;
+  let found = null, best = 9999;
+  npcs.forEach(n => {
+    const d = Math.hypot(n.x - wx, n.y - wy);
+    if (d < 48 && d < best) { best = d; found = n; }
+  });
+  hovA = found?.a || null;
+  canvas.style.cursor = found ? 'pointer' : 'default';
+  if (found) showPop(found.a, e.clientX, e.clientY);
+  else document.getElementById('pop').classList.remove('on');
+}
+
+function showPop(a, mx, my) {
+  const d = DIVS[a.div];
+  const oc = makeSmallCanvas(a, 40);
+  const ava = document.getElementById('popAva');
+  ava.innerHTML = ''; ava.appendChild(oc);
+  document.getElementById('popNm').textContent = a.name;
+  document.getElementById('popRl').textContent = a.role + ' · ' + d.label;
+  document.getElementById('popTxt').textContent = a.identity;
+  document.getElementById('popTags').innerHTML = a.stack.split('·').slice(0, 3).map(t =>
+    `<span class="ptag" style="background:${d.color}18;color:${d.color}">${t.trim()}</span>`).join('');
+  const inM = meeting.find(m => m.id === a.id);
+  document.getElementById('popAdd').textContent = inM ? '★ In Meeting' : 'Add to Meeting';
+  document.getElementById('popAdd').onclick = () => toggleM(a.id);
+  document.getElementById('popInfo').onclick = () => openTalk(npcs.find(n=>n.a.id===a.id));
+  const pop = document.getElementById('pop');
+  let lx = mx + 14, ly = my - 80;
+  if (lx + 220 > window.innerWidth) lx = mx - 232;
+  if (ly < 8) ly = my + 18;
+  if (ly + 280 > window.innerHeight) ly = window.innerHeight - 285;
+  pop.style.left = lx + 'px'; pop.style.top = ly + 'px';
+  pop.classList.add('on');
+}
+
+function onCK(e) {
+  if (hovA) openTalk(npcs.find(n => n.a.id === hovA.id));
+}
+
+// ════════════════════════════════════════════════════════
+//  TALK SYSTEM  — real chat with agent via Claude API
+// ════════════════════════════════════════════════════════
+const talkHistory = new Map(); // agentId → [{role,content}]
+
+function openTalk(npc) {
+  if (!npc) return;
+  talkTarget = npc;
+  document.getElementById('pop').classList.remove('on');
+  const a = npc.a;
+  const d = DIVS[a.div];
+
+  // Avatar
+  const ava = document.getElementById('talkAva');
+  ava.innerHTML = '';
+  const oc = makeSmallCanvas(a, 44);
+  ava.appendChild(oc);
+
+  document.getElementById('talkName').textContent = a.name;
+  document.getElementById('talkRole').style.color = d.color;
+  document.getElementById('talkRole').textContent = a.role + ' · ' + d.label;
+
+  // Load history
+  if (!talkHistory.has(a.id)) talkHistory.set(a.id, []);
+  renderTalkHistory(a.id);
+
+  const dlg = document.getElementById('talkDlg');
+  dlg.style.display = 'flex';
+  document.getElementById('talkInput').focus();
+
+  // Greeting if first time
+  if (talkHistory.get(a.id).length === 0) {
+    appendTalkMsg(a.id, 'assistant',
+      `Hey! I'm ${a.name}. ${a.identity} What can I help you with?`);
+  }
+}
+
+function closeTalk() {
+  talkTarget = null;
+  document.getElementById('talkDlg').style.display = 'none';
+}
+
+function appendTalkMsg(agentId, role, content) {
+  const hist = talkHistory.get(agentId);
+  hist.push({ role, content });
+  renderTalkHistory(agentId);
+}
+
+function renderTalkHistory(agentId) {
+  const hist = talkHistory.get(agentId) || [];
+  const box = document.getElementById('talkHistory');
+  box.innerHTML = hist.map(m => {
+    const isUser = m.role === 'user';
+    return `<div style="display:flex;justify-content:${isUser?'flex-end':'flex-start'}">
+      <div style="max-width:82%;padding:8px 11px;border-radius:${isUser?'12px 12px 2px 12px':'12px 12px 12px 2px'};
+        background:${isUser?'rgba(255,255,255,.12)':'rgba(255,255,255,.05)'};
+        border:1px solid ${isUser?'rgba(255,255,255,.14)':'rgba(255,255,255,.07)'};
+        font-size:12px;line-height:1.6;color:${isUser?'#eceaf8':'rgba(236,234,248,.82)'}">
+        ${escHtml(m.content)}
+      </div>
+    </div>`;
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function sendTalk() {
+  if (!talkTarget) return;
+  const input = document.getElementById('talkInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  const a = talkTarget.a;
+  appendTalkMsg(a.id, 'user', text);
+
+  // Show typing indicator
+  const hist = talkHistory.get(a.id);
+
+  // Build system prompt
+  const sys = `You are ${a.name}, a ${a.role} at a virtual AI agency. Stay fully in character.
+
+Identity: ${a.identity}
+Mission: ${a.mission}
+Stack: ${a.stack}
+Critical Rules:
+${a.rules.map(r=>'- '+r).join('\n')}
+
+Keep replies short (2-4 sentences max). Be helpful, direct, and in character. Don't mention you are an AI. You are a real team member.`;
+
+  // Typing bubble on NPC
+  talkTarget.chatText = '...';
+  talkTarget.chatTimer = 999;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 200,
+        system: sys,
+        messages: hist.filter(m => m.role === 'user' || m.role === 'assistant')
+          .slice(-10)
+          .map(m => ({ role: m.role, content: m.content })),
+      }),
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Sorry, I missed that — try again?';
+    talkTarget.chatText = reply.slice(0, 80) + (reply.length > 80 ? '…' : '');
+    talkTarget.chatTimer = 420; // 7s
+    appendTalkMsg(a.id, 'assistant', reply);
+  } catch (err) {
+    talkTarget.chatText = '';
+    talkTarget.chatTimer = 0;
+    appendTalkMsg(a.id, 'assistant', 'Having trouble connecting — try again!');
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  MODAL (profile view)
+// ════════════════════════════════════════════════════════
+function openMod(a) {
+  selA = a;
+  const d = DIVS[a.div];
+  const inM = meeting.find(m => m.id === a.id);
+  const box = document.getElementById('amBox');
+  box.innerHTML = `
+    <div class="am-t">
+      <div class="am-fig" style="background:${d.color}0d" id="amFig"></div>
+      <div style="flex:1">
+        <div class="am-n">${a.name}</div>
+        <div class="am-d" style="color:${d.color}">${d.label} · ${a.role}</div>
+        <div class="am-s">${a.stack}</div>
+      </div>
+      <button class="am-x" onclick="cmod({target:document.getElementById('amod')})">✕</button>
+    </div>
+    <div class="am-sl">Identity</div>
+    <div class="am-id">"${a.identity}"</div>
+    <div class="am-sl">Mission</div>
+    <div style="font-size:11px;color:rgba(236,234,248,.5);line-height:1.7">${a.mission}</div>
+    <div class="am-sl">Critical Rules</div>
+    ${a.rules.map(r=>`<div class="am-ru">${r}</div>`).join('')}
+    <div class="am-sl">Deliverables</div>
+    ${a.deliverables.map(dv=>`<div class="am-dl">${dv}</div>`).join('')}
+    <div class="am-f">
+      <button class="ambt ${inM?'r':'p'}" id="amtb" onclick="toggleM('${a.id}');refreshAMB('${a.id}')">${inM?'✕ Remove':'★ Add to Meeting'}</button>
+      <button class="ambt s" onclick="cmod({target:document.getElementById('amod')})">Close</button>
+    </div>`;
+  const fig = document.getElementById('amFig');
+  if (fig) { const oc = makeSmallCanvas(a, 64); fig.appendChild(oc); }
+  document.getElementById('amod').classList.add('on');
+  if (activeTab === 'info') buildPanel();
+}
+
+function refreshAMB(id) {
+  const inM = meeting.find(m => m.id === id);
+  const b = document.getElementById('amtb');
+  if (b) { b.className = 'ambt ' + (inM ? 'r' : 'p'); b.textContent = inM ? '✕ Remove' : '★ Add to Meeting'; }
+}
+function cmod(e) { if (e.target === document.getElementById('amod')) document.getElementById('amod').classList.remove('on'); }
+
+// ════════════════════════════════════════════════════════
+//  PANEL
+// ════════════════════════════════════════════════════════
+function swt(tab, el) {
+  activeTab = tab;
+  document.querySelectorAll('.ptt').forEach(t => t.classList.remove('on'));
+  el.classList.add('on'); buildPanel();
+}
+
+function buildPanel() {
+  const b = document.getElementById('pbody');
+  if (activeTab === 'agents') {
+    const grouped = {};
+    AGENTS.forEach(a => { if (!grouped[a.div]) grouped[a.div] = []; grouped[a.div].push(a); });
+    b.innerHTML = '';
+    Object.entries(grouped).forEach(([div, list]) => {
+      const d = DIVS[div];
+      const s = document.createElement('div');
+      s.innerHTML = `<div class="dh"><div class="dd" style="background:${d.color}"></div><div class="dl" style="color:${d.color}">${d.label}</div><div class="dc">${list.length}</div></div>`;
+      list.forEach(a => {
+        const inM = meeting.find(m => m.id === a.id);
+        const row = document.createElement('div');
+        row.className = `ar${inM ? ' im' : ''}`;
+        const figWrap = document.createElement('div');
+        figWrap.className = 'ar-f';
+        const oc = makeSmallCanvas(a, 28);
+        figWrap.appendChild(oc);
+        row.appendChild(figWrap);
+        row.innerHTML += `<div class="ar-i"><div class="ar-n">${a.name}</div><div class="ar-r">${a.role}</div></div>
+          <button class="ar-a${inM ? ' on' : ''}" onclick="event.stopPropagation();toggleM('${a.id}')">${inM ? '★' : '+'}</button>`;
+        row.onclick = () => openMod(a);
+        s.appendChild(row);
+      });
+      b.appendChild(s);
+    });
+  } else if (activeTab === 'meeting') {
+    if (!meeting.length) { b.innerHTML = `<div class="me">Walk near an agent, press E to talk,<br>or use + to add them to your session.<br>Up to 8 can join.</div>`; return; }
+    b.innerHTML = '';
+    meeting.forEach(a => {
+      const d = DIVS[a.div];
+      const row = document.createElement('div');
+      row.className = 'ms';
+      const bar = document.createElement('div'); bar.className = 'ms-b'; bar.style.background = d.color;
+      const fig = document.createElement('div'); fig.className = 'ms-f';
+      const oc = makeSmallCanvas(a, 28); fig.appendChild(oc);
+      row.appendChild(bar); row.appendChild(fig);
+      row.innerHTML += `<div class="ms-i"><div class="ms-n">${a.name}</div><div class="ms-r">${a.role}</div></div>
+        <button class="ms-x" onclick="toggleM('${a.id}')">✕</button>`;
+      b.appendChild(row);
+    });
+    const lb = document.createElement('button');
+    lb.className = 'ml'; lb.textContent = '⚡ Launch Session'; lb.onclick = openMov;
+    b.appendChild(lb);
+  } else {
+    if (!selA) { b.innerHTML = `<div class="me">Click or press E near an agent<br>to see their profile.</div>`; return; }
+    const a = selA, d = DIVS[a.div], inM = meeting.find(m => m.id === a.id);
+    b.innerHTML = '';
+    const ic = document.createElement('div'); ic.className = 'ic';
+    const figDiv = document.createElement('div'); figDiv.className = 'if'; figDiv.style.background = d.color + '0d';
+    const oc = makeSmallCanvas(a, 64); figDiv.appendChild(oc);
+    ic.appendChild(figDiv);
+    ic.innerHTML += `<div class="in">${a.name}</div><div class="ir" style="color:${d.color}">${a.role} · ${d.label}</div>
+      <div class="isep"></div>
+      <div class="ilbl">Identity</div>
+      <div class="itxt" style="font-style:italic;margin-bottom:8px">"${a.identity}"</div>
+      <div class="ilbl">Stack</div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${a.stack.split('·').map(t => `<span class="ptag" style="background:${d.color}18;color:${d.color};font-size:8px;padding:2px 6px;border-radius:20px;font-weight:700">${t.trim()}</span>`).join('')}</div>
+      <div class="ilbl">Rules</div>
+      ${a.rules.map(r => `<div class="irule">${r}</div>`).join('')}
+      <div class="isep"></div>
+      <div class="ilbl">Deliverables</div>
+      <div class="itxt">${a.deliverables.map(x => `→ ${x}`).join('<br>')}</div>
+      <button class="ibtn${inM ? ' on' : ''}" onclick="toggleM('${a.id}');buildPanel()">${inM ? '★ In Meeting — Remove' : '+ Add to Meeting'}</button>`;
+    b.appendChild(ic);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  MEETING — agents physically walk to meeting room
+// ════════════════════════════════════════════════════════
+const MEETING_ZONE = ZONES.find(z => z.id === 'meeting');
+const MEETING_SEATS = (() => {
+  // 14 seats arranged around the meeting table (mirror of drawMeetingTable layout)
+  const z = ZONES.find(z => z.id === 'meeting');
+  const tx = z.x + 70, ty = z.y + 130, tw = 480, th = 248;
+  return [
+    {x:tx+55,  y:ty-30},  {x:tx+150, y:ty-30},  {x:tx+245, y:ty-30},
+    {x:tx+340, y:ty-30},  {x:tx+435, y:ty-30},
+    {x:tx+55,  y:ty+th+30},{x:tx+150,y:ty+th+30},{x:tx+245,y:ty+th+30},
+    {x:tx+340, y:ty+th+30},{x:tx+435,y:ty+th+30},
+    {x:tx-32,  y:ty+65},  {x:tx-32,  y:ty+160},
+    {x:tx+tw+32,y:ty+65}, {x:tx+tw+32,y:ty+160},
+  ];
+})();
+
+function toggleM(id) {
+  const a = AGENTS.find(x => x.id === id);
+  if (!a) return;
+  const i = meeting.findIndex(m => m.id === id);
+  if (i >= 0) {
+    meeting.splice(i, 1);
+    toast(`${a.name} left the meeting`);
+    // Send NPC back to desk
+    const npc = npcs.find(n => n.a.id === id);
+    if (npc) {
+      npc.inMeeting = false;
+      npc.state = 'walking';
+      npc.tx = npc.dx; npc.ty = npc.dy;
+      npc.stateCD = 200;
+    }
+  } else {
+    if (meeting.length >= 8) { toast('Meeting full (8 max)'); return; }
+    meeting.push(a);
+    toast(`${a.name} heading to meeting room`);
+    // Send NPC walking to their meeting seat
+    const npc = npcs.find(n => n.a.id === id);
+    if (npc) {
+      npc.inMeeting = true;
+      const seat = MEETING_SEATS[meeting.length - 1] || MEETING_SEATS[0];
+      npc.state = 'walking';
+      npc.tx = seat.x; npc.ty = seat.y;
+      npc.meetSeat = seat;
+      npc.stateCD = 600;
+    }
+  }
+  document.getElementById('mpct').textContent = meeting.length ? `${meeting.length} in session` : 'Meeting Room';
+  buildPanel();
+}
+
+function openMov() {
+  if (!meeting.length) { toast('Add agents first'); return; }
+  document.getElementById('movH').textContent = `${meeting.length} Agent${meeting.length > 1 ? 's' : ''} Assembled`;
+  const row = document.getElementById('movRow');
+  row.innerHTML = '';
+  meeting.forEach(a => {
+    const d = DIVS[a.div];
+    const c = document.createElement('div');
+    c.className = 'mo-c'; c.style.borderColor = d.color + '22';
+    const fig = document.createElement('div'); fig.className = 'mo-cf';
+    const oc = makeSmallCanvas(a, 44); fig.appendChild(oc);
+    c.appendChild(fig);
+    c.innerHTML += `<div class="mo-cn">${a.name}</div><div class="mo-cr">${a.role}</div>`;
+    c.onclick = () => { toggleM(a.id); if (meeting.length > 0) openMov(); else closeMov(); };
+    row.appendChild(c);
+  });
+  document.getElementById('mov').classList.add('on');
+}
+
+function closeMov() { document.getElementById('mov').classList.remove('on'); }
+
+function copyPr() {
+  const task = document.getElementById('movTa').value.trim();
+  const block = meeting.map(a =>
+    `## ${a.name} — ${a.role} (${DIVS[a.div].label})\n**Identity:** ${a.identity}\n**Mission:** ${a.mission}\n**Stack:** ${a.stack}\n**Rules:**\n${a.rules.map(r => '- ' + r).join('\n')}\n**Deliverables:** ${a.deliverables.join(', ')}`
+  ).join('\n\n---\n\n');
+  const pr = `You are a specialized team assembled by Wassim Omran.\n\n${block}\n\n---\n\n${task ? `## TASK\n${task}` : 'Introduce yourselves and ask what Wassim needs.'}`;
+  navigator.clipboard.writeText(pr).then(() => toast('✅ Team prompt copied!'));
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+buildSplash();
+</script>
+</body>
+</html>
