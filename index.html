@@ -186,6 +186,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:#09090f;font-family:
   <button class="sp-btn" id="spBtn" onclick="go()" disabled>Enter the Office →</button>
 </div>
 
+<!-- API Key Modal -->
+<div id="apiKeyDlg" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(6px)">
+  <div style="width:100%;max-width:420px;background:rgba(8,10,20,.98);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:28px 28px 24px">
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px">🔑 Claude API Key</div>
+    <div style="font-size:11px;color:rgba(236,234,248,.4);margin-bottom:18px;line-height:1.6">
+      Your key is stored in <strong style="color:rgba(236,234,248,.7)">session memory only</strong> — it is never saved to disk, never sent anywhere except directly to Anthropic, and disappears when you close the tab.
+    </div>
+    <input id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"
+      style="width:100%;box-sizing:border-box;padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#eceaf8;font-family:monospace;font-size:13px;outline:none;margin-bottom:14px">
+    <div style="display:flex;gap:8px">
+      <button onclick="saveApiKey()"
+        style="flex:1;padding:10px;background:rgba(255,255,255,.88);border:none;border-radius:10px;color:#09090f;font-weight:700;font-family:Outfit,sans-serif;font-size:13px;cursor:pointer">Save &amp; Close</button>
+      <button onclick="document.getElementById('apiKeyDlg').style.display='none'"
+        style="padding:10px 18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(236,234,248,.6);font-family:Outfit,sans-serif;font-size:13px;cursor:pointer">Cancel</button>
+    </div>
+    <div id="apiKeyStatus" style="margin-top:10px;font-size:11px;color:rgba(236,234,248,.4);min-height:16px"></div>
+  </div>
+</div>
+
 <!-- Talk dialog -->
 <div id="talkDlg" style="display:none;position:fixed;inset:0;z-index:90;align-items:flex-end;justify-content:center;padding-bottom:80px;background:rgba(0,0,0,.4);backdrop-filter:blur(4px)">
   <div style="width:100%;max-width:520px;background:rgba(8,10,20,.97);border:1px solid rgba(255,255,255,.14);border-radius:20px 20px 0 0;padding:20px 20px 0">
@@ -214,6 +233,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#09090f;font-family:
     <div class="tb-hex"></div><span class="tb-title">Agency OS</span>
     <div class="tb-div"></div><span class="tb-hint">WASD/Arrows move · E talk · M meeting · F dance</span>
     <div class="tb-r">
+      <button onclick="openApiKeyDlg()" title="Set Claude API key" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(236,234,248,.55);cursor:pointer;font-size:13px;padding:4px 9px;margin-right:4px" id="apiKeyBtn">🔑</button>
       <div class="mpill" onclick="openMov()"><div class="mdot"></div><span id="mpct">Meeting Room</span><span style="opacity:.4">→</span></div>
       <div class="pp"><div class="pp-a" id="ppAva"></div><span class="pp-n" id="ppN">—</span></div>
     </div>
@@ -1791,6 +1811,48 @@ function onCK(e) {
 }
 
 // ════════════════════════════════════════════════════════
+//  API KEY  — sessionStorage only, never persisted to disk
+// ════════════════════════════════════════════════════════
+function openApiKeyDlg() {
+  const existing = sessionStorage.getItem('claude_api_key') || '';
+  const inp = document.getElementById('apiKeyInput');
+  inp.value = existing ? '••••••••••••••••' : '';
+  document.getElementById('apiKeyStatus').textContent =
+    existing ? '✓ Key is set for this session' : 'No key set yet';
+  document.getElementById('apiKeyDlg').style.display = 'flex';
+  if (!existing) inp.focus();
+}
+
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val || val.startsWith('•')) {
+    document.getElementById('apiKeyDlg').style.display = 'none';
+    return;
+  }
+  if (!val.startsWith('sk-ant-')) {
+    document.getElementById('apiKeyStatus').textContent = '⚠ That doesn\'t look like a Claude key (should start with sk-ant-)';
+    return;
+  }
+  sessionStorage.setItem('claude_api_key', val);
+  document.getElementById('apiKeyBtn').style.color = '#2ee8a5';
+  document.getElementById('apiKeyStatus').textContent = '✓ Saved for this session';
+  setTimeout(() => { document.getElementById('apiKeyDlg').style.display = 'none'; }, 600);
+}
+
+// Console helper — type this in browser DevTools console:
+//   setApiKey('sk-ant-api03-...')
+window.setApiKey = function(key) {
+  if (!key || !key.startsWith('sk-ant-')) {
+    console.warn('[AgencyOS] Key rejected — must start with sk-ant-');
+    return;
+  }
+  sessionStorage.setItem('claude_api_key', key);
+  const btn = document.getElementById('apiKeyBtn');
+  if (btn) btn.style.color = '#2ee8a5';
+  console.log('[AgencyOS] ✓ API key set for this session. All agents are ready.');
+};
+
+// ════════════════════════════════════════════════════════
 //  TALK SYSTEM  — real chat with agent via Claude API
 // ════════════════════════════════════════════════════════
 const talkHistory = new Map(); // agentId → [{role,content}]
@@ -1822,8 +1884,11 @@ function openTalk(npc) {
 
   // Greeting if first time
   if (talkHistory.get(a.id).length === 0) {
+    const hasKey = !!sessionStorage.getItem('claude_api_key');
     appendTalkMsg(a.id, 'assistant',
-      `Hey! I'm ${a.name}. ${a.identity} What can I help you with?`);
+      hasKey
+        ? `Hey! I'm ${a.name}. ${a.identity} What can I help you with?`
+        : `Hey! I'm ${a.name}. Set your Claude API key (🔑 top-right) to chat with me for real!`);
   }
 }
 
@@ -1864,51 +1929,67 @@ async function sendTalk() {
   const input = document.getElementById('talkInput');
   const text = input.value.trim();
   if (!text) return;
-  input.value = '';
 
+  const apiKey = sessionStorage.getItem('claude_api_key');
+  if (!apiKey) {
+    openApiKeyDlg();
+    return;
+  }
+
+  input.value = '';
   const a = talkTarget.a;
   appendTalkMsg(a.id, 'user', text);
 
-  // Show typing indicator
   const hist = talkHistory.get(a.id);
 
-  // Build system prompt
-  const sys = `You are ${a.name}, a ${a.role} at a virtual AI agency. Stay fully in character.
+  // Build system prompt from agent's full profile
+  const sys = `You are ${a.name}, a ${a.role} working at a virtual AI agency called Agency OS. Stay fully in character at all times.
 
 Identity: ${a.identity}
 Mission: ${a.mission}
 Stack: ${a.stack}
 Critical Rules:
-${a.rules.map(r=>'- '+r).join('\n')}
+${a.rules.map(r => '- ' + r).join('\n')}
+Deliverables: ${a.deliverables.join(', ')}
 
-Keep replies short (2-4 sentences max). Be helpful, direct, and in character. Don't mention you are an AI. You are a real team member.`;
+Keep replies concise (2-4 sentences). Be direct, helpful, and in character. Do not mention being an AI or a language model.`;
 
-  // Typing bubble on NPC
+  // Typing indicator
   talkTarget.chatText = '...';
-  talkTarget.chatTimer = 999;
+  talkTarget.chatTimer = 99999;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true',
+      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 200,
+        model: 'claude-opus-4-5',
+        max_tokens: 220,
         system: sys,
-        messages: hist.filter(m => m.role === 'user' || m.role === 'assistant')
-          .slice(-10)
+        messages: hist
+          .filter(m => m.role === 'user' || m.role === 'assistant')
+          .slice(-12)
           .map(m => ({ role: m.role, content: m.content })),
       }),
     });
     const data = await res.json();
-    const reply = data.content?.[0]?.text || 'Sorry, I missed that — try again?';
-    talkTarget.chatText = reply.slice(0, 80) + (reply.length > 80 ? '…' : '');
-    talkTarget.chatTimer = 420; // 7s
+    if (data.error) throw new Error(data.error.message);
+    const reply = data.content?.[0]?.text || 'Sorry, I missed that.';
+    talkTarget.chatText = reply.slice(0, 90) + (reply.length > 90 ? '\u2026' : '');
+    talkTarget.chatTimer = 6000;
     appendTalkMsg(a.id, 'assistant', reply);
   } catch (err) {
     talkTarget.chatText = '';
     talkTarget.chatTimer = 0;
-    appendTalkMsg(a.id, 'assistant', 'Having trouble connecting — try again!');
+    appendTalkMsg(a.id, 'assistant',
+      err.message?.includes('401') ? '\u26a0 Invalid API key — click 🔑 to update it.' :
+      err.message?.includes('529') ? 'Claude is overloaded right now — try again in a moment.' :
+      'Connection issue — check your key and try again.');
   }
 }
 
