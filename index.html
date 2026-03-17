@@ -751,6 +751,7 @@ class NPC {
     this.chatText = lines[(Math.random() * lines.length) | 0];
     this.chatTimer = 3000 + Math.random() * 1000;
     this.chatCD = 12000 + Math.random() * 10000;
+    sndBubblePop();
   }
 
   _startBreak(all) {
@@ -865,6 +866,7 @@ class NPC {
       this.chatText = lines[(Math.random() * lines.length) | 0];
       this.chatTimer = 3000 + Math.random() * 1000;
       this.chatCD = 10000 + Math.random() * 8000;
+      sndBubblePop();
     }
 
     // Move toward walk target
@@ -974,42 +976,35 @@ function renderOffice(ctx, camX, camY, W, H) {
       ctx.beginPath(); ctx.moveTo(px+dx*bl, py); ctx.lineTo(px, py); ctx.lineTo(px, py+dy*bl); ctx.stroke();
     });
 
-    // Zone label — full-width centered header
-    const ZONE_SUBS = {engineering:'Software & DevOps',accusentry:'Quality Control',paivo:'Product & Growth',marketing:'Brand & Content',support:'Finance & Analytics',design:'UI/UX & Brand',sales:'Business Dev',specialized:'Cross-Functional',meeting:'Conference Zone',dance:'Break Zone'};
-    const sub = ZONE_SUBS[z.id] || '';
-    const mc = AGENTS.filter(a => a.div === z.id).length;
-    const hdrH = 58, hdrPad = 6;
-    const hx = zx + hdrPad, hy = zy + 6, hw = z.w - hdrPad*2;
-    // Shadow
-    ctx.fillStyle = 'rgba(0,0,0,.5)'; rr(ctx, hx+3, hy+4, hw, hdrH, 10); ctx.fill();
-    // Background
-    ctx.fillStyle = 'rgba(4,5,14,.94)'; rr(ctx, hx, hy, hw, hdrH, 10); ctx.fill();
-    // Color tint overlay
-    ctx.fillStyle = col + '20'; rr(ctx, hx, hy, hw, hdrH, 10); ctx.fill();
-    // Top accent line full width
-    ctx.fillStyle = col; ctx.fillRect(hx+10, hy, hw-20, 3);
-    // Bottom separator
-    ctx.fillStyle = col + '40'; ctx.fillRect(hx+10, hy+hdrH-1, hw-20, 1);
-    // Room name — centered, large
-    ctx.font = 'bold 15px Outfit'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255,255,255,.97)';
-    ctx.fillText(z.label, zx + z.w/2, hy + 22);
-    // Subtitle — centered, smaller, division color
-    ctx.font = '9px Outfit'; ctx.fillStyle = col + 'dd';
-    ctx.fillText(sub.toUpperCase(), zx + z.w/2, hy + 38);
-    // Agent count — right aligned
-    if (mc > 0) {
-      ctx.font = '8px Outfit'; ctx.textAlign = 'right';
-      ctx.fillStyle = 'rgba(255,255,255,.22)';
-      ctx.fillText(mc + ' agents', hx + hw - 10, hy + 50);
-    }
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-
-    // Light bar
-    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(zx + z.w/2 - 48, zy, 96, 3);
-    for (let li = -28; li <= 28; li += 14) {
-      ctx.fillStyle = 'rgba(255,248,210,.8)';
-      ctx.beginPath(); ctx.arc(zx + z.w/2 + li, zy + 1.5, 3, 0, Math.PI*2); ctx.fill();
+    // Zone label — full-width centered header (skip for dance floor, it has its own)
+    if (z.id !== 'dance') {
+      const ZONE_SUBS = {engineering:'Software & DevOps',accusentry:'Quality Control',paivo:'Product & Growth',marketing:'Brand & Content',support:'Finance & Analytics',design:'UI/UX & Brand',sales:'Business Dev',specialized:'Cross-Functional',meeting:'Conference Zone'};
+      const sub = ZONE_SUBS[z.id] || '';
+      const mc = AGENTS.filter(a => a.div === z.id).length;
+      const hdrH = 58, hdrPad = 6;
+      const hx = zx + hdrPad, hy = zy + 6, hw = z.w - hdrPad*2;
+      ctx.fillStyle = 'rgba(0,0,0,.5)'; rr(ctx, hx+3, hy+4, hw, hdrH, 10); ctx.fill();
+      ctx.fillStyle = 'rgba(4,5,14,.94)'; rr(ctx, hx, hy, hw, hdrH, 10); ctx.fill();
+      ctx.fillStyle = col + '20'; rr(ctx, hx, hy, hw, hdrH, 10); ctx.fill();
+      ctx.fillStyle = col; ctx.fillRect(hx+10, hy, hw-20, 3);
+      ctx.fillStyle = col + '40'; ctx.fillRect(hx+10, hy+hdrH-1, hw-20, 1);
+      ctx.font = 'bold 15px Outfit'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,255,255,.97)';
+      ctx.fillText(z.label, zx + z.w/2, hy + 22);
+      ctx.font = '9px Outfit'; ctx.fillStyle = col + 'dd';
+      ctx.fillText(sub.toUpperCase(), zx + z.w/2, hy + 38);
+      if (mc > 0) {
+        ctx.font = '8px Outfit'; ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(255,255,255,.22)';
+        ctx.fillText(mc + ' agents', hx + hw - 10, hy + 50);
+      }
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      // Light bar
+      ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(zx + z.w/2 - 48, zy, 96, 3);
+      for (let li = -28; li <= 28; li += 14) {
+        ctx.fillStyle = 'rgba(255,248,210,.8)';
+        ctx.beginPath(); ctx.arc(zx + z.w/2 + li, zy + 1.5, 3, 0, Math.PI*2); ctx.fill();
+      }
     }
   });
 
@@ -1179,10 +1174,36 @@ function renderOffice(ctx, camX, camY, W, H) {
       bg.addColorStop(0,'rgba(255,0,204,.25)');bg.addColorStop(1,'transparent');
       ctx.fillStyle=bg;ctx.beginPath();ctx.arc(dbx+lbx,dby+lby+60,40,0,Math.PI*2);ctx.fill();
     });
-    // Label
-    ctx.fillStyle='rgba(255,0,204,.8)';ctx.font='bold 10px Outfit';ctx.textAlign='center';
-    ctx.fillText('💃 DANCE FLOOR — Press F to dance! 🕺',dfx+dz.w/2,dfy+dz.h-12);
-    ctx.textAlign='left';
+    // Neon header panel at top
+    const nhx = dfx + 6, nhy = dfy + 6, nhw = dz.w - 12, nhh = 50;
+    const npulse = 0.5 + 0.5 * Math.sin(Date.now() / 280);
+    // Shadow glow
+    ctx.fillStyle = `rgba(255,0,204,${0.18 + npulse * 0.12})`;
+    rr(ctx, nhx + 3, nhy + 4, nhw, nhh, 12); ctx.fill();
+    // Dark background
+    ctx.fillStyle = 'rgba(3,0,14,.96)'; rr(ctx, nhx, nhy, nhw, nhh, 12); ctx.fill();
+    // Color wash
+    ctx.fillStyle = `rgba(255,0,204,${0.07 + npulse * 0.07})`;
+    rr(ctx, nhx, nhy, nhw, nhh, 12); ctx.fill();
+    // Top neon bar
+    ctx.fillStyle = `rgba(255,0,204,${0.7 + npulse * 0.3})`;
+    ctx.fillRect(nhx + 14, nhy, nhw - 28, 2);
+    // Side accent bars
+    ctx.fillStyle = 'rgba(255,0,204,.5)';
+    ctx.fillRect(nhx, nhy + 12, 3, nhh - 24);
+    ctx.fillRect(nhx + nhw - 3, nhy + 12, 3, nhh - 24);
+    // Glow layer for title text
+    ctx.font = 'bold 15px Outfit'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.fillStyle = `rgba(255,0,204,${0.35 + npulse * 0.35})`;
+    ctx.fillText('💃 DANCE FLOOR', dfx + dz.w / 2 + 1, nhy + 20 + 1);
+    // Sharp title
+    ctx.fillStyle = `rgb(255,${Math.round(80 + npulse * 80)},${Math.round(220 + npulse * 35)})`;
+    ctx.fillText('💃 DANCE FLOOR', dfx + dz.w / 2, nhy + 20);
+    // Subtitle
+    ctx.font = 'bold 8px Outfit';
+    ctx.fillStyle = `rgba(255,120,240,${0.65 + npulse * 0.25})`;
+    ctx.fillText('PRESS  F  TO  DANCE  🕺', dfx + dz.w / 2, nhy + 37);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   })();
 
   // Sofas (lounge area)
@@ -1318,6 +1339,37 @@ function renderChar(ctx, npc, camX, camY) {
   const frame = getCharFrame(npc.a, npc.state, npc.tick);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(frame, sx, sy, CW_DRAW, CH_DRAW);
+
+  // Coffee cup prop — drawn over sprite when agent is at coffee station
+  if (npc.actMode === 'coffee' && npc.state !== 'walking') {
+    const cpx = (sx + CW_DRAW * 0.60) | 0;
+    const cpy = (sy + CH_DRAW * 0.48) | 0;
+    const ct = Date.now() / 1300;
+    // Cup body
+    ctx.fillStyle = '#f2f0ee'; ctx.fillRect(cpx, cpy + 2, 10, 11);
+    // Handle
+    ctx.strokeStyle = '#d8d4d0'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cpx + 11.5, cpy + 7.5, 4, -Math.PI * 0.5, Math.PI * 0.5); ctx.stroke();
+    // Coffee liquid
+    ctx.fillStyle = '#7b4820'; ctx.fillRect(cpx + 1, cpy + 3, 8, 5);
+    // Bottom rim
+    ctx.fillStyle = '#c8c0b8'; ctx.fillRect(cpx - 1, cpy + 11, 12, 2);
+    // Steam wisps (animated)
+    for (let si = 0; si < 3; si++) {
+      const prog = ((ct + si * 0.34) % 1);
+      ctx.globalAlpha = (1 - prog) * 0.7;
+      ctx.strokeStyle = 'rgba(225,230,245,.9)'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      const wx = cpx + 1.5 + si * 3;
+      const wy0 = cpy + 1;
+      const wy1 = cpy - 5 - prog * 7;
+      const wc = Math.sin(prog * Math.PI * 2 + si * 1.2) * 2;
+      ctx.moveTo(wx, wy0);
+      ctx.quadraticCurveTo(wx + wc, (wy0 + wy1) / 2, wx, wy1);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
 
   // Nametag
   const tW = 72, tH = 18;
@@ -1653,6 +1705,7 @@ function init() {
   camX = plX - W / 2; camY = plY - H / 2;
 
   window.addEventListener('keydown', e => {
+    initAudio();
     keys[e.code] = true;
     if (e.code === 'Escape') {
       cmod({ target: document.getElementById('amod') });
@@ -1670,13 +1723,15 @@ function init() {
     }
     // F = dance anywhere
     if (e.code === 'KeyF') {
+      initAudio();
       plDancing = true;
       plDanceTimer = 4000;
       plChatText = DANCE_LINES[(Math.random() * DANCE_LINES.length) | 0];
       plChatTimer = 5000;
+      startDanceBeat();
     }
   });
-  window.addEventListener('keyup', e => keys[e.code] = false);
+  window.addEventListener('keyup', e => { initAudio(); keys[e.code] = false; });
   canvas.addEventListener('mousemove', onMM);
   canvas.addEventListener('click', onCK);
 
@@ -1707,12 +1762,12 @@ function loop(t) {
   if (keys['KeyA'] || keys['ArrowLeft'])  dx = -1;
   if (keys['KeyD'] || keys['ArrowRight']) dx = 1;
   plDanceTimer = Math.max(0, plDanceTimer - dt);
-  if (plDanceTimer <= 0) plDancing = false;
+  if (plDanceTimer <= 0 && plDancing) { stopDanceBeat(); plDancing = false; }
   plChatTimer = Math.max(0, plChatTimer - dt);
   const moving = !!(dx || dy);
   plX = Math.max(20, Math.min(FW - 20, plX + dx * SPD));
   plY = Math.max(20, Math.min(FH - 20, plY + dy * SPD));
-  if (moving) plDancing = false;  // movement stops dancing animation but NOT the bubble
+  if (moving && plDancing) { stopDanceBeat(); plDancing = false; } // movement stops dancing
   plState = plDancing ? 'talking' : (moving ? 'walking' : 'idle');
   plTick += dt * 0.06;
 
@@ -1730,6 +1785,12 @@ function loop(t) {
   camX = Math.max(0, Math.min(FW - W, camX));
   camY = Math.max(0, Math.min(FH - H, camY));
 
+  // Player footsteps
+  if (moving) {
+    plStepTimer -= dt;
+    if (plStepTimer <= 0) { sndStep(); plStepTimer = 290 + Math.random() * 80; }
+  } else { plStepTimer = 0; }
+
   // Update NPCs (frozen while talking to them)
   npcs.forEach(n => {
     if (talkTarget && n.a.id === talkTarget.a.id) {
@@ -1737,6 +1798,13 @@ function loop(t) {
     } else {
       n.update(dt, npcs);
     }
+    // NPC ambient sounds
+    if (n.state === 'typing' && Math.random() < 0.004) sndTypingClick();
+    if (n.actMode === 'coffee' && n.state === 'idle') {
+      if (!n._sipCD) n._sipCD = 2200 + Math.random() * 2000;
+      n._sipCD -= dt;
+      if (n._sipCD <= 0) { sndCoffeeSip(); n._sipCD = 2500 + Math.random() * 2000; }
+    } else { n._sipCD = 0; }
   });
 
   // Render
@@ -1814,6 +1882,7 @@ function showPop(a, mx, my) {
 }
 
 function onCK(e) {
+  initAudio();
   if (hovA) openTalk(npcs.find(n => n.a.id === hovA.id));
 }
 
@@ -2249,6 +2318,134 @@ function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('on');
   clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+// ════════════════════════════════════════════════════════
+//  SOUND SYSTEM — Web Audio API procedural synthesis (no files)
+// ════════════════════════════════════════════════════════
+let audioCtx = null;
+let masterVol = null;
+let danceTimeout = null;
+let plStepTimer = 0;
+
+function initAudio() {
+  if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterVol = audioCtx.createGain();
+    masterVol.gain.value = 0.55;
+    masterVol.connect(audioCtx.destination);
+    // Soft AC ambience hum (looping white noise through tight low-pass)
+    const sz = audioCtx.sampleRate * 2;
+    const abuf = audioCtx.createBuffer(1, sz, audioCtx.sampleRate);
+    const ad = abuf.getChannelData(0);
+    for (let i = 0; i < sz; i++) ad[i] = Math.random() * 2 - 1;
+    const asrc = audioCtx.createBufferSource(); asrc.buffer = abuf; asrc.loop = true;
+    const alp = audioCtx.createBiquadFilter(); alp.type = 'lowpass'; alp.frequency.value = 85;
+    const ag = audioCtx.createGain(); ag.gain.value = 0.028;
+    asrc.connect(alp); alp.connect(ag); ag.connect(masterVol); asrc.start();
+  } catch(e) { /* audio not supported */ }
+}
+
+function sndTypingClick() {
+  if (!audioCtx) return;
+  const n = Math.floor(audioCtx.sampleRate * 0.013);
+  const buf = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 4);
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const flt = audioCtx.createBiquadFilter(); flt.type = 'highpass'; flt.frequency.value = 1500;
+  const g = audioCtx.createGain(); g.gain.value = 0.032 + Math.random() * 0.022;
+  src.connect(flt); flt.connect(g); g.connect(masterVol); src.start();
+}
+
+function sndBubblePop() {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(580, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.09);
+  g.gain.setValueAtTime(0.20, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.13);
+  osc.connect(g); g.connect(masterVol);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+}
+
+function sndStep() {
+  if (!audioCtx) return;
+  const n = Math.floor(audioCtx.sampleRate * 0.032);
+  const buf = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.007));
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const flt = audioCtx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 210;
+  const g = audioCtx.createGain(); g.gain.value = 0.09;
+  src.connect(flt); flt.connect(g); g.connect(masterVol); src.start();
+}
+
+function sndCoffeeSip() {
+  if (!audioCtx) return;
+  const n = Math.floor(audioCtx.sampleRate * 0.075);
+  const buf = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.022));
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const flt = audioCtx.createBiquadFilter(); flt.type = 'bandpass'; flt.frequency.value = 650; flt.Q.value = 2.5;
+  const g = audioCtx.createGain(); g.gain.value = 0.08;
+  src.connect(flt); flt.connect(g); g.connect(masterVol); src.start();
+}
+
+function sndDanceKick(t) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(165, t); osc.frequency.exponentialRampToValueAtTime(38, t + 0.14);
+  g.gain.setValueAtTime(0.78, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.27);
+  osc.connect(g); g.connect(masterVol); osc.start(t); osc.stop(t + 0.3);
+}
+
+function sndDanceHat(t) {
+  if (!audioCtx) return;
+  const n = Math.floor(audioCtx.sampleRate * 0.05);
+  const buf = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const flt = audioCtx.createBiquadFilter(); flt.type = 'highpass'; flt.frequency.value = 8000;
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.11, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+  src.connect(flt); flt.connect(g); g.connect(masterVol); src.start(t); src.stop(t + 0.06);
+}
+
+function sndDanceBass(t) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
+  const flt = audioCtx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 190;
+  osc.type = 'sawtooth'; osc.frequency.value = 55;
+  g.gain.setValueAtTime(0.38, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+  osc.connect(flt); flt.connect(g); g.connect(masterVol); osc.start(t); osc.stop(t + 0.22);
+}
+
+function startDanceBeat() {
+  if (!audioCtx || danceTimeout) return;
+  let beat = 0;
+  const beatMs = (60 / 124) * 1000; // 124 BPM
+  function tick() {
+    if (!plDancing) { danceTimeout = null; return; }
+    const t = audioCtx.currentTime;
+    sndDanceKick(t);
+    sndDanceHat(t);
+    if (beat % 4 === 2) sndDanceKick(t + beatMs / 2000); // ghost kick on beat 3
+    if (beat % 2 === 0) sndDanceBass(t);
+    beat++;
+    danceTimeout = setTimeout(tick, beatMs);
+  }
+  tick();
+}
+
+function stopDanceBeat() {
+  clearTimeout(danceTimeout);
+  danceTimeout = null;
 }
 
 buildSplash();
