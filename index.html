@@ -847,9 +847,15 @@ class NPC {
         this.x += (ddx/dist)*this.spd*dt*0.1;
         this.y += (ddy/dist)*this.spd*dt*0.1;
       } else {
-        this.x = this.meetSeat.x; this.y = this.meetSeat.y;
-        this.state = Math.random() < 0.3 ? 'talking' : 'idle';
-        this.stateCD = 3000 + Math.random() * 3000;
+        // Snap to seat once on arrival, then only change state when stateCD expires
+        if (this.state === 'walking') {
+          this.x = this.meetSeat.x; this.y = this.meetSeat.y;
+          this.state = Math.random() < 0.3 ? 'talking' : 'idle';
+          this.stateCD = 3000 + Math.random() * 3000;
+        } else if (this.stateCD <= 0) {
+          this.state = Math.random() < 0.3 ? 'talking' : 'idle';
+          this.stateCD = 3000 + Math.random() * 3000;
+        }
       }
       if (this.chatCD <= 0 && Math.random() < 0.004) {
         const lines = CHAT_LINES[this.a.div] || ['...'];
@@ -1711,7 +1717,11 @@ function init() {
       cmod({ target: document.getElementById('amod') });
       closeMov();
       closeTalk();
+      return;
     }
+    // Block all game hotkeys when focus is inside a text input or textarea
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     // E = talk to nearby agent
     if (e.code === 'KeyE' && nearbyNPC && !talkTarget) {
       openTalk(nearbyNPC);
@@ -2266,14 +2276,14 @@ function toggleM(id) {
       npc.stateCD = 200;
     }
   } else {
-    if (meeting.length >= 8) { toast('Meeting full (8 max)'); return; }
+    if (meeting.length >= MEETING_SEATS.length) { toast(`Meeting full (${MEETING_SEATS.length} max)`); return; }
     meeting.push(a);
     toast(`${a.name} heading to meeting room`);
     // Send NPC walking to their meeting seat
     const npc = npcs.find(n => n.a.id === id);
     if (npc) {
       npc.inMeeting = true;
-      const seat = MEETING_SEATS[meeting.length - 1] || MEETING_SEATS[0];
+      const seat = MEETING_SEATS[meeting.length - 1];
       npc.state = 'walking';
       npc.tx = seat.x; npc.ty = seat.y;
       npc.meetSeat = seat;
@@ -2311,7 +2321,24 @@ function copyPr() {
     `## ${a.name} — ${a.role} (${DIVS[a.div].label})\n**Identity:** ${a.identity}\n**Mission:** ${a.mission}\n**Stack:** ${a.stack}\n**Rules:**\n${a.rules.map(r => '- ' + r).join('\n')}\n**Deliverables:** ${a.deliverables.join(', ')}`
   ).join('\n\n---\n\n');
   const pr = `You are a specialized team assembled by Wassim Omran.\n\n${block}\n\n---\n\n${task ? `## TASK\n${task}` : 'Introduce yourselves and ask what Wassim needs.'}`;
-  navigator.clipboard.writeText(pr).then(() => toast('✅ Team prompt copied!'));
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(pr)
+      .then(() => toast('✅ Team prompt copied!'))
+      .catch(() => fallbackCopy(pr));
+  } else {
+    fallbackCopy(pr);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); toast('✅ Team prompt copied!'); }
+  catch { toast('⚠ Copy failed — try Ctrl+A then Ctrl+C in the text area'); }
+  document.body.removeChild(ta);
 }
 
 function toast(msg) {
