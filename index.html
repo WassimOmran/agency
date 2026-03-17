@@ -189,9 +189,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#09090f;font-family:
 <!-- API Key Modal -->
 <div id="apiKeyDlg" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(6px)">
   <div style="width:100%;max-width:420px;background:rgba(8,10,20,.98);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:28px 28px 24px">
-    <div style="font-size:16px;font-weight:700;margin-bottom:6px">🔑 Claude API Key</div>
-    <div style="font-size:11px;color:rgba(236,234,248,.4);margin-bottom:18px;line-height:1.6">
-      Your key is stored in <strong style="color:rgba(236,234,248,.7)">session memory only</strong> — it is never saved to disk, never sent anywhere except directly to Anthropic, and disappears when you close the tab.
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px">🔑 AI API Key</div>
+    <div style="font-size:11px;color:rgba(236,234,248,.4);margin-bottom:14px;line-height:1.6">
+      Your key is stored in <strong style="color:rgba(236,234,248,.7)">session memory only</strong> — never saved to disk, only sent directly to your chosen provider, and disappears when you close the tab.
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;color:rgba(236,234,248,.4);display:block;margin-bottom:6px">Provider</label>
+      <select id="apiProviderSel" onchange="updateProviderPlaceholder()" style="width:100%;box-sizing:border-box;padding:8px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#eceaf8;font-family:Outfit,sans-serif;font-size:13px;outline:none;cursor:pointer">
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="openai">OpenAI (GPT-4o)</option>
+      </select>
     </div>
     <input id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"
       style="width:100%;box-sizing:border-box;padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#eceaf8;font-family:monospace;font-size:13px;outline:none;margin-bottom:14px">
@@ -233,7 +240,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#09090f;font-family:
     <div class="tb-hex"></div><span class="tb-title">Agency OS</span>
     <div class="tb-div"></div><span class="tb-hint">WASD/Arrows move · E talk · M meeting · F dance</span>
     <div class="tb-r">
-      <button onclick="openApiKeyDlg()" title="Set Claude API key" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(236,234,248,.55);cursor:pointer;font-size:13px;padding:4px 9px;margin-right:4px" id="apiKeyBtn">🔑</button>
+      <button onclick="openApiKeyDlg()" title="Set AI API key" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(236,234,248,.55);cursor:pointer;font-size:13px;padding:4px 9px;margin-right:4px" id="apiKeyBtn">🔑</button>
       <div class="mpill" onclick="openMov()"><div class="mdot"></div><span id="mpct">Meeting Room</span><span style="opacity:.4">→</span></div>
       <div class="pp"><div class="pp-a" id="ppAva"></div><span class="pp-n" id="ppN">—</span></div>
     </div>
@@ -1813,9 +1820,18 @@ function onCK(e) {
 // ════════════════════════════════════════════════════════
 //  API KEY  — sessionStorage only, never persisted to disk
 // ════════════════════════════════════════════════════════
+function updateProviderPlaceholder() {
+  const p = document.getElementById('apiProviderSel').value;
+  document.getElementById('apiKeyInput').placeholder = p === 'openai' ? 'sk-...' : 'sk-ant-api03-...';
+}
+
 function openApiKeyDlg() {
-  const existing = sessionStorage.getItem('claude_api_key') || '';
+  const existing = sessionStorage.getItem('ai_api_key') || '';
+  const provider = sessionStorage.getItem('ai_provider') || 'anthropic';
   const inp = document.getElementById('apiKeyInput');
+  const sel = document.getElementById('apiProviderSel');
+  sel.value = provider;
+  inp.placeholder = provider === 'openai' ? 'sk-...' : 'sk-ant-api03-...';
   inp.value = existing ? '••••••••••••••••' : '';
   document.getElementById('apiKeyStatus').textContent =
     existing ? '✓ Key is set for this session' : 'No key set yet';
@@ -1825,31 +1841,41 @@ function openApiKeyDlg() {
 
 function saveApiKey() {
   const val = document.getElementById('apiKeyInput').value.trim();
+  const provider = document.getElementById('apiProviderSel').value;
   if (!val || val.startsWith('•')) {
+    sessionStorage.setItem('ai_provider', provider);
     document.getElementById('apiKeyDlg').style.display = 'none';
     return;
   }
-  if (!val.startsWith('sk-ant-')) {
-    document.getElementById('apiKeyStatus').textContent = '⚠ That doesn\'t look like a Claude key (should start with sk-ant-)';
+  if (provider === 'anthropic' && !val.startsWith('sk-ant-')) {
+    document.getElementById('apiKeyStatus').textContent = '⚠ Anthropic keys start with sk-ant-';
     return;
   }
-  sessionStorage.setItem('claude_api_key', val);
+  if (provider === 'openai' && !val.startsWith('sk-')) {
+    document.getElementById('apiKeyStatus').textContent = '⚠ OpenAI keys start with sk-';
+    return;
+  }
+  sessionStorage.setItem('ai_api_key', val);
+  sessionStorage.setItem('ai_provider', provider);
   document.getElementById('apiKeyBtn').style.color = '#2ee8a5';
   document.getElementById('apiKeyStatus').textContent = '✓ Saved for this session';
   setTimeout(() => { document.getElementById('apiKeyDlg').style.display = 'none'; }, 600);
 }
 
 // Console helper — type this in browser DevTools console:
-//   setApiKey('sk-ant-api03-...')
-window.setApiKey = function(key) {
-  if (!key || !key.startsWith('sk-ant-')) {
-    console.warn('[AgencyOS] Key rejected — must start with sk-ant-');
+//   setApiKey('sk-ant-api03-...')          ← Anthropic auto-detected
+//   setApiKey('sk-...', 'openai')          ← OpenAI explicit
+window.setApiKey = function(key, provider) {
+  if (!key || !key.startsWith('sk-')) {
+    console.warn('[AgencyOS] Key rejected — must start with sk-');
     return;
   }
-  sessionStorage.setItem('claude_api_key', key);
+  const prov = provider || (key.startsWith('sk-ant-') ? 'anthropic' : 'openai');
+  sessionStorage.setItem('ai_api_key', key);
+  sessionStorage.setItem('ai_provider', prov);
   const btn = document.getElementById('apiKeyBtn');
   if (btn) btn.style.color = '#2ee8a5';
-  console.log('[AgencyOS] ✓ API key set for this session. All agents are ready.');
+  console.log(`[AgencyOS] ✓ API key set (${prov}) for this session. All agents are ready.`);
 };
 
 // ════════════════════════════════════════════════════════
@@ -1884,11 +1910,11 @@ function openTalk(npc) {
 
   // Greeting if first time
   if (talkHistory.get(a.id).length === 0) {
-    const hasKey = !!sessionStorage.getItem('claude_api_key');
+    const hasKey = !!sessionStorage.getItem('ai_api_key');
     appendTalkMsg(a.id, 'assistant',
       hasKey
         ? `Hey! I'm ${a.name}. ${a.identity} What can I help you with?`
-        : `Hey! I'm ${a.name}. Set your Claude API key (🔑 top-right) to chat with me for real!`);
+        : `Hey! I'm ${a.name}. Set your API key (🔑 top-right) to chat with me for real!`);
   }
 }
 
@@ -1930,7 +1956,8 @@ async function sendTalk() {
   const text = input.value.trim();
   if (!text) return;
 
-  const apiKey = sessionStorage.getItem('claude_api_key');
+  const apiKey = sessionStorage.getItem('ai_api_key');
+  const provider = sessionStorage.getItem('ai_provider') || 'anthropic';
   if (!apiKey) {
     openApiKeyDlg();
     return;
@@ -1958,28 +1985,51 @@ Keep replies concise (2-4 sentences). Be direct, helpful, and in character. Do n
   talkTarget.chatText = '...';
   talkTarget.chatTimer = 99999;
 
+  const msgs = hist
+    .filter(m => m.role === 'user' || m.role === 'assistant')
+    .slice(-12)
+    .map(m => ({ role: m.role, content: m.content }));
+
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-allow-browser': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-5',
-        max_tokens: 220,
-        system: sys,
-        messages: hist
-          .filter(m => m.role === 'user' || m.role === 'assistant')
-          .slice(-12)
-          .map(m => ({ role: m.role, content: m.content })),
-      }),
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const reply = data.content?.[0]?.text || 'Sorry, I missed that.';
+    let res, data, reply;
+
+    if (provider === 'openai') {
+      res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          max_tokens: 220,
+          messages: [{ role: 'system', content: sys }, ...msgs],
+        }),
+      });
+      data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      reply = data.choices?.[0]?.message?.content || 'Sorry, I missed that.';
+    } else {
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-allow-browser': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-4-5',
+          max_tokens: 220,
+          system: sys,
+          messages: msgs,
+        }),
+      });
+      data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      reply = data.content?.[0]?.text || 'Sorry, I missed that.';
+    }
+
     talkTarget.chatText = reply.slice(0, 90) + (reply.length > 90 ? '\u2026' : '');
     talkTarget.chatTimer = 6000;
     appendTalkMsg(a.id, 'assistant', reply);
