@@ -709,8 +709,7 @@ class NPC {
     this.state = 'typing';
     this.actMode = 'desk'; // desk | stretch | coffee | wander | crosschat | printer
     this.tick = Math.random() * 200;
-    this.stateCD = 180 + Math.random() * 400;
-    this.chatText = '';
+    this.stateCD = 5000 + Math.random() * 10000;  // stagger initial desk time 5-15s
     this.chatCD = 8000 + Math.random() * 22000;  // stagger initial burst across 8-30s
     this.chatTimer = 0;
     this.spd = 1.2 + Math.random() * 0.6;
@@ -735,13 +734,13 @@ class NPC {
       this.state = 'walking';
       this.tx = 2595 + Math.random() * 50;
       this.ty = 1345 + Math.random() * 25;
-      this.stateCD = 380 + Math.random() * 320;
+      this.stateCD = 6000 + Math.random() * 4000;  // time to stand at coffee machine after arriving
       this._emitChat('coffee');
     } else if (r < 0.36) {
       // Stretch near desk — just idle in place
       this.actMode = 'stretch';
       this.state = 'idle';
-      this.stateCD = 100 + Math.random() * 140;
+      this.stateCD = 3000 + Math.random() * 2000;
       this._emitChat('stretch');
     } else if (r < 0.52) {
       // Wander inside own zone
@@ -751,7 +750,7 @@ class NPC {
         this.tx = this.zone.x + 40 + Math.random() * (this.zone.w - 80);
         this.ty = this.zone.y + 50 + Math.random() * (this.zone.h - 100);
       }
-      this.stateCD = 140 + Math.random() * 180;
+      this.stateCD = 4000 + Math.random() * 3000;  // idle time after arriving
       if (Math.random() < 0.15) this._emitChat('wander');
     } else if (r < 0.70) {
       // Chat with same-division colleague
@@ -761,18 +760,17 @@ class NPC {
         this.actMode = 'chat';
         this.state = 'walking';
         this.tx = partner.x + 28; this.ty = partner.y - 5;
-        this.stateCD = 60;
+        this.stateCD = 99999;  // held until setTimeout fires
         const self = this;
         setTimeout(() => {
           if (self.state !== 'walking' && self.state !== 'idle') return;
           self.state = 'talking';
-          self.stateCD = 220 + Math.random() * 200;
+          self.stateCD = 4000 + Math.random() * 3000;
           if (partner.state !== 'typing') partner.state = 'talking';
         }, 500);
       } else {
-        this.actMode = 'wander'; this.state = 'idle'; this.stateCD = 100;
+        this.actMode = 'wander'; this.state = 'idle'; this.stateCD = 2000;
       }
-    } else if (r < 0.84) {
       // Cross-department visit
       const others = all.filter(n => n !== this && n.a.div !== this.a.div && !n.inMeeting);
       if (others.length > 0) {
@@ -780,17 +778,17 @@ class NPC {
         this.actMode = 'crosschat';
         this.state = 'walking';
         this.tx = target.x + 26; this.ty = target.y - 5;
-        this.stateCD = 60;
+        this.stateCD = 99999;  // held until setTimeout fires
         const self = this;
         setTimeout(() => {
           if (self.state !== 'walking' && self.state !== 'idle') return;
           self.state = 'talking';
-          self.stateCD = 180 + Math.random() * 180;
+          self.stateCD = 4000 + Math.random() * 3000;
           if (target.state !== 'typing') target.state = 'talking';
           if (Math.random() < 0.3) self._emitChat('collab');
         }, 700);
       } else {
-        this.actMode = 'wander'; this.state = 'idle'; this.stateCD = 100;
+        this.actMode = 'wander'; this.state = 'idle'; this.stateCD = 2000;
       }
     } else {
       // Printer run
@@ -798,14 +796,15 @@ class NPC {
       this.state = 'walking';
       this.tx = 1305 + Math.random() * 35;
       this.ty = 1085 + Math.random() * 28;
-      this.stateCD = 260 + Math.random() * 220;
+      this.stateCD = 5000 + Math.random() * 4000;  // time at printer after arriving
       this._emitChat('printer');
     }
   }
 
   update(dt, all) {
     this.tick += dt * 0.06;
-    this.stateCD -= dt;
+    // Only count down stateCD when NOT walking (walks self-terminate on arrival)
+    if (this.state !== 'walking') this.stateCD -= dt;
     this.chatCD -= dt;
     this.chatTimer = Math.max(0, this.chatTimer - dt);
 
@@ -822,7 +821,7 @@ class NPC {
       } else {
         this.x = this.meetSeat.x; this.y = this.meetSeat.y;
         this.state = Math.random() < 0.3 ? 'talking' : 'idle';
-        this.stateCD = 120 + Math.random() * 180;
+        this.stateCD = 3000 + Math.random() * 3000;
       }
       if (this.chatCD <= 0 && Math.random() < 0.004) {
         const lines = CHAT_LINES[this.a.div] || ['...'];
@@ -868,13 +867,13 @@ class NPC {
           this.x = this.dx; this.y = this.dy;
           this.state = 'typing';
         }
-        this.stateCD = 400 + Math.random() * 600;
+        this.stateCD = 5000 + Math.random() * 8000;
       } else if (r < 0.58) {
         // Extend typing time at desk
         this.actMode = 'desk';
         this.state = 'typing';
         this.x = this.dx; this.y = this.dy;
-        this.stateCD = 280 + Math.random() * 360;
+        this.stateCD = 4000 + Math.random() * 5000;
       } else {
         // Take a break
         this._startBreak(all);
