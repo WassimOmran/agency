@@ -751,7 +751,6 @@ class NPC {
     this.chatText = lines[(Math.random() * lines.length) | 0];
     this.chatTimer = 3000 + Math.random() * 1000;
     this.chatCD = 12000 + Math.random() * 10000;
-    sndBubblePop();
   }
 
   _startBreak(all) {
@@ -872,7 +871,6 @@ class NPC {
       this.chatText = lines[(Math.random() * lines.length) | 0];
       this.chatTimer = 3000 + Math.random() * 1000;
       this.chatCD = 10000 + Math.random() * 8000;
-      sndBubblePop();
     }
 
     // Move toward walk target
