@@ -1369,7 +1369,7 @@ function renderPlayer(ctx, camX, camY) {
     const bh = 26;
     const bl = bx - bw / 2;
     const bt = by - bh;
-    const alpha = plChatTimer < 800 ? plChatTimer / 800 : 1;
+    const alpha = plChatTimer < 1500 ? plChatTimer / 1500 : 1;
     ctx.globalAlpha = alpha;
     ctx.fillStyle = 'rgba(8,10,20,.97)'; rr(ctx, bl, bt, bw, bh, 10); ctx.fill();
     ctx.strokeStyle = '#e8c96acc'; ctx.lineWidth = 1.5; rr(ctx, bl, bt, bw, bh, 10); ctx.stroke();
@@ -1647,7 +1647,7 @@ function init() {
       plDancing = true;
       plDanceTimer = 4000;
       plChatText = DANCE_LINES[(Math.random() * DANCE_LINES.length) | 0];
-      plChatTimer = 3500;
+      plChatTimer = 5000;
     }
   });
   window.addEventListener('keyup', e => keys[e.code] = false);
@@ -1686,7 +1686,7 @@ function loop(t) {
   const moving = !!(dx || dy);
   plX = Math.max(20, Math.min(FW - 20, plX + dx * SPD));
   plY = Math.max(20, Math.min(FH - 20, plY + dy * SPD));
-  if (moving) plDancing = false;
+  if (moving) plDancing = false;  // movement stops dancing animation but NOT the bubble
   plState = plDancing ? 'talking' : (moving ? 'walking' : 'idle');
   plTick += dt * 0.06;
 
