@@ -178,23 +178,32 @@ html,body{width:100%;height:100%;overflow:hidden;background:#09090f;font-family:
 .pl-filter.active{background:rgba(0,229,255,.15);color:#00e5ff;border-color:rgba(0,229,255,.4)}
 .pl-clear{margin-left:auto;padding:5px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;border:1px solid rgba(255,60,60,.2);background:rgba(255,60,60,.05);color:rgba(255,100,100,.6);transition:all .15s}
 .pl-clear:hover{background:rgba(255,60,60,.15);color:#ff6060}
-#plabGrid{width:100%;max-width:1100px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;flex:1}
-.pl-card{background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.12);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,transform .2s}
-.pl-card:hover{border-color:rgba(0,229,255,.35);transform:translateY(-2px)}
-.pl-card-head{padding:10px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(0,229,255,.07)}
-.pl-card-ava{width:30px;height:30px;border-radius:6px;overflow:hidden;image-rendering:pixelated;flex-shrink:0;background:rgba(0,229,255,.06)}
-.pl-card-info{flex:1;min-width:0}
-.pl-card-agent{font-size:10px;font-weight:700;color:rgba(0,229,255,.8);font-family:Outfit,sans-serif}
-.pl-card-file{font-size:11px;font-weight:700;color:#eceaf8;font-family:Outfit,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pl-lang-badge{padding:2px 7px;border-radius:5px;font-size:9px;font-weight:800;text-transform:uppercase;font-family:Outfit,sans-serif;flex-shrink:0}
-.pl-card-pre{flex:1;padding:10px 12px;font-family:'Courier New',monospace;font-size:9.5px;line-height:1.6;color:rgba(150,220,150,.8);background:rgba(0,0,0,.3);overflow:hidden;max-height:110px;position:relative;white-space:pre;overflow:hidden}
-.pl-card-pre::after{content:'';position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,rgba(0,8,14,.95))}
-.pl-card-foot{padding:8px 12px;display:flex;gap:6px;border-top:1px solid rgba(0,229,255,.07)}
-.pl-card-time{font-size:9px;color:rgba(0,229,255,.3);font-family:Outfit,sans-serif;margin-right:auto;align-self:center}
-.pl-dl{padding:5px 12px;font-size:10px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;border:1px solid rgba(0,229,255,.2);background:rgba(0,229,255,.06);color:rgba(0,229,255,.7);transition:all .15s}
-.pl-dl:hover{background:rgba(0,229,255,.15);color:#00e5ff}
-.pl-dl.primary{background:rgba(0,229,255,.88);color:#020d12;border-color:transparent}
-.pl-dl.primary:hover{background:#00e5ff}
+/* Build progression timeline */
+#plabTimeline{width:100%;max-width:1100px;margin-bottom:18px;display:flex;align-items:center;gap:0;flex-wrap:wrap;flex-shrink:0;min-height:36px}
+.pl-step{display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:20px;font-size:10px;font-weight:700;color:rgba(0,229,255,.6);font-family:Outfit,sans-serif;white-space:nowrap;transition:all .2s}
+.pl-step.latest{background:rgba(0,229,255,.14);border-color:rgba(0,229,255,.45);color:#00e5ff;box-shadow:0 0 14px rgba(0,229,255,.12)}
+.pl-step-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.pl-step-arrow{color:rgba(0,229,255,.2);font-size:12px;padding:0 4px;flex-shrink:0}
+/* Pinned note cards */
+#plabGrid{width:100%;max-width:1100px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px;flex:1;padding:8px 4px}
+.pl-card{position:relative;border-radius:3px;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s;cursor:pointer;min-height:220px}
+.pl-card:hover{transform:rotate(0deg) scale(1.03) translateY(-4px)!important;box-shadow:0 16px 40px rgba(0,0,0,.6)!important;z-index:2}
+.pl-pin{position:absolute;top:-11px;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.pl-card-tape{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:44px;height:12px;background:rgba(255,255,200,.18);border-radius:2px;z-index:3}
+.pl-step-badge{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;font-family:Outfit,sans-serif;z-index:2}
+.pl-card-body{flex:1;display:flex;flex-direction:column;padding:22px 14px 12px;border-radius:3px}
+.pl-card-who{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.pl-card-ava{width:26px;height:26px;border-radius:50%;overflow:hidden;image-rendering:pixelated;flex-shrink:0;border:2px solid rgba(255,255,255,.3)}
+.pl-card-agent{font-size:10px;font-weight:800;font-family:Outfit,sans-serif;letter-spacing:.3px}
+.pl-card-file{font-size:11px;font-weight:700;color:rgba(0,0,0,.6);font-family:'JetBrains Mono',monospace;margin-bottom:8px;word-break:break-all}
+.pl-lang-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:8px;font-weight:800;text-transform:uppercase;font-family:Outfit,sans-serif;margin-bottom:10px}
+.pl-card-note{flex:1;font-size:11px;line-height:1.7;color:rgba(0,0,0,.7);font-family:Outfit,sans-serif;white-space:pre-wrap;word-break:break-word;overflow:hidden;max-height:90px}
+.pl-card-foot{display:flex;gap:5px;padding-top:10px;margin-top:auto;border-top:1px solid rgba(0,0,0,.08)}
+.pl-card-time{font-size:8px;color:rgba(0,0,0,.4);font-family:Outfit,sans-serif;margin-right:auto;align-self:center}
+.pl-dl{padding:4px 10px;font-size:9px;font-weight:700;border-radius:5px;cursor:pointer;font-family:Outfit,sans-serif;border:1px solid rgba(0,0,0,.18);background:rgba(0,0,0,.06);color:rgba(0,0,0,.6);transition:all .15s}
+.pl-dl:hover{background:rgba(0,0,0,.12)}
+.pl-dl.primary{background:rgba(0,0,0,.75);color:#fff;border-color:transparent}
+.pl-dl.primary:hover{background:rgba(0,0,0,.9)}
 .pl-empty{width:100%;text-align:center;padding:60px 20px;color:rgba(0,229,255,.2);font-size:14px;font-family:Outfit,sans-serif}
 .pl-foot{width:100%;max-width:1100px;margin-top:20px;display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
 
@@ -350,12 +359,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#09090f;font-family:
     <button class="pl-filter" data-lang="other" onclick="plFilter(this,'other')">Other</button>
     <button class="pl-clear" onclick="clearLab()">🗑 Clear All</button>
   </div>
+  <div id="plabTimeline"></div>
   <div id="plabGrid"></div>
   <div class="pl-foot">
     <button class="pl-dl" onclick="downloadAllProducts()">↓ Download All</button>
     <button class="pl-dl primary" onclick="closePlab()">Close</button>
   </div>
 </div>
+<div id="mov">
   <div style="text-align:center"><div class="mo-l">Session Room</div><div class="mo-h" id="movH">Meeting</div></div>
   <div class="mo-row" id="movRow"></div>
   <div id="movSplit">
@@ -2443,8 +2454,12 @@ function buildPanel() {
         const oc = makeSmallCanvas(a, 28);
         figWrap.appendChild(oc);
         row.appendChild(figWrap);
-        row.innerHTML += `<div class="ar-i"><div class="ar-n">${a.name}</div><div class="ar-r">${a.role}</div></div>
-          <button class="ar-a${inM ? ' on' : ''}" onclick="event.stopPropagation();toggleM('${a.id}')">${inM ? '★' : '+'}</button>`;
+        const arInfo = document.createElement('div'); arInfo.className = 'ar-i';
+        arInfo.innerHTML = `<div class="ar-n">${a.name}</div><div class="ar-r">${a.role}</div>`;
+        const arBtn = document.createElement('button'); arBtn.className = `ar-a${inM ? ' on' : ''}`;
+        arBtn.textContent = inM ? '★' : '+';
+        arBtn.onclick = e => { e.stopPropagation(); toggleM(a.id); };
+        row.appendChild(arInfo); row.appendChild(arBtn);
         row.onclick = () => openMod(a);
         s.appendChild(row);
       });
@@ -2460,9 +2475,11 @@ function buildPanel() {
       const bar = document.createElement('div'); bar.className = 'ms-b'; bar.style.background = d.color;
       const fig = document.createElement('div'); fig.className = 'ms-f';
       const oc = makeSmallCanvas(a, 28); fig.appendChild(oc);
-      row.appendChild(bar); row.appendChild(fig);
-      row.innerHTML += `<div class="ms-i"><div class="ms-n">${a.name}</div><div class="ms-r">${a.role}</div></div>
-        <button class="ms-x" onclick="toggleM('${a.id}')">✕</button>`;
+      const info = document.createElement('div'); info.className = 'ms-i';
+      info.innerHTML = `<div class="ms-n">${a.name}</div><div class="ms-r">${a.role}</div>`;
+      const xBtn = document.createElement('button'); xBtn.className = 'ms-x'; xBtn.textContent = '✕';
+      xBtn.onclick = () => toggleM(a.id);
+      row.appendChild(bar); row.appendChild(fig); row.appendChild(info); row.appendChild(xBtn);
       b.appendChild(row);
     });
     const lb = document.createElement('button');
@@ -2476,7 +2493,7 @@ function buildPanel() {
     const figDiv = document.createElement('div'); figDiv.className = 'if'; figDiv.style.background = d.color + '0d';
     const oc = makeSmallCanvas(a, 64); figDiv.appendChild(oc);
     ic.appendChild(figDiv);
-    ic.innerHTML += `<div class="in">${a.name}</div><div class="ir" style="color:${d.color}">${a.role} · ${d.label}</div>
+    const icRest = document.createElement('div'); icRest.innerHTML = `<div class="in">${a.name}</div><div class="ir" style="color:${d.color}">${a.role} · ${d.label}</div>
       <div class="isep"></div>
       <div class="ilbl">Identity</div>
       <div class="itxt" style="font-style:italic;margin-bottom:8px">"${a.identity}"</div>
@@ -2488,6 +2505,7 @@ function buildPanel() {
       <div class="ilbl">Deliverables</div>
       <div class="itxt">${a.deliverables.map(x => `→ ${x}`).join('<br>')}</div>
       <button class="ibtn${inM ? ' on' : ''}" onclick="toggleM('${a.id}');buildPanel()">${inM ? '★ In Meeting — Remove' : '+ Add to Meeting'}</button>`;
+    while (icRest.firstChild) ic.appendChild(icRest.firstChild);
     b.appendChild(ic);
   }
 }
@@ -2556,7 +2574,8 @@ function openMov() {
     const fig = document.createElement('div'); fig.className = 'mo-cf';
     const oc = makeSmallCanvas(a, 40); fig.appendChild(oc);
     c.appendChild(fig);
-    c.innerHTML += `<div class="mo-cn">${a.name}</div><div class="mo-cr">${a.role}</div>`;
+    const moInfo = document.createElement('div'); moInfo.innerHTML = `<div class="mo-cn">${a.name}</div><div class="mo-cr">${a.role}</div>`;
+    while (moInfo.firstChild) c.appendChild(moInfo.firstChild);
     c.onclick = () => { toggleM(a.id); if (meeting.length > 0) openMov(); else closeMov(); };
     row.appendChild(c);
   });
@@ -2878,6 +2897,8 @@ IMPORTANT: When the user asks you to build, write, generate, or create something
   meetSending = false;
   document.getElementById('movSendBtn').disabled = false;
   document.getElementById('movChatTxt')?.focus();
+  // Auto-save any new artifacts to the Products Lab
+  if (meetArtifacts.length) autoSaveAllArtifacts();
 }
 
 function extractArtifacts(agent, text) {
@@ -2963,22 +2984,49 @@ function downloadActive() {
 function saveActiveToLab() {
   const af = meetArtifacts[activeArtifact];
   if (!af) { toast('No file selected'); return; }
+  saveArtifactToLab(af);
+}
+
+function saveArtifactToLab(af) {
   const sessionLabel = meetChatHistory.filter(m => m.role === 'user')[0]?.content?.slice(0, 40) || 'Meeting session';
+  // Build a short plain-english note from the agent's identity/mission
+  const agent = AGENTS.find(a => a.id === af.agentId);
+  const noteLines = [];
+  if (agent) {
+    noteLines.push(`"${agent.identity}"`);
+    noteLines.push('');
+    noteLines.push(`→ ${af.filename}`);
+    if (agent.stack) noteLines.push(`Stack: ${agent.stack.split('·').slice(0,3).map(s=>s.trim()).join(' · ')}`);
+  } else {
+    noteLines.push(`→ ${af.filename}`);
+  }
+  const buildStep = savedProducts.filter(p => p.sessionLabel === sessionLabel).length + 1;
   savedProducts.push({
     id: Date.now() + Math.random(),
     timestamp: Date.now(),
     sessionLabel,
-    agentId: af.agentId,
+    buildStep,
+    agentId:   af.agentId,
     agentName: af.agentName,
-    divCol:   af.divCol,
-    lang:     af.lang,
-    filename: af.filename,
-    content:  af.content,
+    divCol:    af.divCol,
+    lang:      af.lang,
+    filename:  af.filename,
+    content:   af.content,
+    note:      noteLines.join('\n'),
   });
   try { localStorage.setItem('agencyProducts', JSON.stringify(savedProducts)); } catch(e) {}
   const pillCt = document.getElementById('plabPillCt');
   if (pillCt) pillCt.textContent = `Lab (${savedProducts.length})`;
   toast(`\u2714 Saved ${af.filename} to Products Lab`);
+}
+
+// Auto-save all new artifacts after a meeting send completes
+function autoSaveAllArtifacts() {
+  const sessionLabel = meetChatHistory.filter(m => m.role === 'user')[0]?.content?.slice(0, 40) || 'Meeting session';
+  const alreadySaved = new Set(savedProducts.filter(p => p.sessionLabel === sessionLabel).map(p => p.filename));
+  meetArtifacts.forEach(af => {
+    if (!alreadySaved.has(af.filename)) saveArtifactToLab(af);
+  });
 }
 
 let plabLangFilter = 'all';
@@ -2998,40 +3046,70 @@ function plFilter(el, lang) {
 function renderPlab() {
   const badge = document.getElementById('plabBadge');
   if (badge) badge.textContent = `${savedProducts.length} file${savedProducts.length !== 1 ? 's' : ''}`;
+  // Timeline
+  const tl = document.getElementById('plabTimeline');
+  if (tl) {
+    const sessions = [...new Set(savedProducts.map(p => p.sessionLabel))];
+    if (sessions.length) {
+      tl.innerHTML = sessions.map((s, i) => {
+        const isLatest = i === sessions.length - 1;
+        const count = savedProducts.filter(p => p.sessionLabel === s).length;
+        return (i > 0 ? '<span class="pl-step-arrow">&#x2192;</span>' : '') +
+          `<span class="pl-step${isLatest ? ' latest' : ''}"><span class="pl-step-dot"></span>Step ${i+1} &middot; ${escHtml(s.slice(0,28))} <span style="opacity:.5">(${count})</span></span>`;
+      }).join('');
+    } else {
+      tl.innerHTML = '';
+    }
+  }
   const grid = document.getElementById('plabGrid');
   if (!grid) return;
+  const NOTE_BG = {
+    engineering:'#fffde7', design:'#fce4ec', paivo:'#e8f5e9',
+    marketing:'#fff3e0', support:'#e3f2fd', accusentry:'#f3e5f5',
+    sales:'#e0f7fa', specialized:'#fafafa'
+  };
+  const NOTE_ROTATIONS = [-2.1, 1.4, -1.0, 2.4, -0.7, 1.8, -2.8, 0.9];
   const filtered = savedProducts.filter(p => {
     if (plabLangFilter === 'all') return true;
     if (plabLangFilter === 'other') return !['html','python','py','js','javascript','dart','sql','yaml','json','css','typescript','ts','bash','sh'].includes(p.lang);
     return p.lang === plabLangFilter || (plabLangFilter === 'js' && p.lang === 'javascript') || (plabLangFilter === 'python' && p.lang === 'py');
   }).slice().reverse();
   if (!filtered.length) {
-    grid.innerHTML = `<div class="pl-empty">\u2697\ufe0f No products here yet.<br><span style="font-size:12px;opacity:.5">Head to the Meeting Room, assemble your agents,<br>and ask them to build something. Then hit \u{1F4BE} Save to Lab!</span></div>`;
+    grid.innerHTML = '<div class="pl-empty">\u2697\ufe0f No products here yet.<br><span style="font-size:12px;opacity:.5">Head to the Meeting Room, assemble your agents,<br>and ask them to build something.</span></div>';
     return;
   }
   const langColors = {html:'#ff6b35',python:'#3b82f6',py:'#3b82f6',js:'#f59e0b',javascript:'#f59e0b',
     dart:'#54c5f8',sql:'#8b5cf6',yaml:'#10b981',json:'#06b6d4',css:'#ec4899',ts:'#3b82f6',typescript:'#3b82f6',sh:'#78e040',bash:'#78e040'};
-  grid.innerHTML = filtered.map(p => {
+  grid.innerHTML = filtered.map((p, i) => {
     const col = langColors[p.lang] || '#00e5ff';
     const ago = fmtAge(p.timestamp);
     const a = AGENTS.find(x => x.id === p.agentId);
     let avaHtml = '';
-    if (a) { const oc = makeSmallCanvas(a, 30); oc.style.cssText = 'width:30px;height:30px;image-rendering:pixelated;display:block'; const tmp = document.createElement('div'); tmp.appendChild(oc); avaHtml = tmp.innerHTML; }
+    if (a) { const oc = makeSmallCanvas(a, 26); oc.style.cssText = 'width:26px;height:26px;image-rendering:pixelated;display:block'; const tmp = document.createElement('div'); tmp.appendChild(oc); avaHtml = tmp.innerHTML; }
     const idx = savedProducts.indexOf(p);
-    return `<div class="pl-card">
-      <div class="pl-card-head">
-        <div class="pl-card-ava">${avaHtml}</div>
-        <div class="pl-card-info">
-          <div class="pl-card-agent" style="color:${p.divCol||col}">${escHtml(p.agentName||'Agent')}</div>
-          <div class="pl-card-file" title="${escHtml(p.filename)}">${escHtml(p.filename)}</div>
+    const rot = NOTE_ROTATIONS[idx % NOTE_ROTATIONS.length];
+    const bg = NOTE_BG[p.div || (a && a.div) || 'specialized'] || '#fafafa';
+    const pinColor = p.divCol || col;
+    const step = p.buildStep || (idx + 1);
+    const noteText = p.note || (p.agentName ? `Built by ${p.agentName}` : '');
+    return `<div class="pl-card" style="background:${bg};transform:rotate(${rot}deg);box-shadow:3px 4px 18px rgba(0,0,0,.35)" onclick="plPreview(${idx})">
+      <div class="pl-pin" style="background:${pinColor}"></div>
+      <div class="pl-step-badge" style="background:${pinColor}22;color:${pinColor};border:1px solid ${pinColor}55">${step}</div>
+      <div class="pl-card-body">
+        <div class="pl-card-who">
+          <div class="pl-card-ava">${avaHtml}</div>
+          <div>
+            <div class="pl-card-agent" style="color:${pinColor}">${escHtml(p.agentName||'Agent')}</div>
+          </div>
+          <div class="pl-lang-badge" style="background:${col}22;color:${col};border:1px solid ${col}44;margin-left:auto">${escHtml(p.lang.toUpperCase())}</div>
         </div>
-        <div class="pl-lang-badge" style="background:${col}22;color:${col};border:1px solid ${col}44">${escHtml(p.lang.toUpperCase())}</div>
-      </div>
-      <div class="pl-card-pre">${escHtml(p.content.slice(0,400))}</div>
-      <div class="pl-card-foot">
-        <span class="pl-card-time">${ago} &middot; ${escHtml(p.sessionLabel||'')}</span>
-        <button class="pl-dl" onclick="plDownload(${idx})">\u2193</button>
-        <button class="pl-dl primary" onclick="plPreview(${idx})">Open</button>
+        <div class="pl-card-file" title="${escHtml(p.filename)}">${escHtml(p.filename)}</div>
+        <p class="pl-card-note">${escHtml(noteText)}</p>
+        <div class="pl-card-foot">
+          <span class="pl-card-time">${ago}</span>
+          <button class="pl-dl" onclick="event.stopPropagation();plDownload(${idx})">\u2193</button>
+          <button class="pl-dl primary" onclick="event.stopPropagation();plPreview(${idx})">Open</button>
+        </div>
       </div>
     </div>`;
   }).join('');
